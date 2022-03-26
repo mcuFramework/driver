@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\src\main;.\src\resources</IncludePath>
+              <IncludePath>.\src\main;.\ref\mcuf\src\main</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
