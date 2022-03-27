@@ -4,12 +4,13 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_E28AC1FD_AF0A_4768_A5E0_B77CCEBDC476
-#define DRIVER_E28AC1FD_AF0A_4768_A5E0_B77CCEBDC476
+#ifndef DRIVER_0ED1175E_157F_4565_8A82_B25CABAFAE02
+#define DRIVER_0ED1175E_157F_4565_8A82_B25CABAFAE02
 
 /* ****************************************************************************************
  * Include folder
  */
+#include "ams/package-info.h"
 
 /* ****************************************************************************************
  * Include
@@ -19,4 +20,4 @@
  * End of file
  */
 
-#endif /* DRIVER_E28AC1FD_AF0A_4768_A5E0_B77CCEBDC476 */
+#endif /* DRIVER_0ED1175E_157F_4565_8A82_B25CABAFAE02 */

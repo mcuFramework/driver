@@ -400,6 +400,26 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>main\driver\ams</GroupName>
+          <Files>
+            <File>
+              <FileName>TCS3472.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main\driver\ams\TCS3472.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>TCS3472.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\ams\TCS3472.h</FilePath>
+            </File>
+            <File>
+              <FileName>package-info.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\ams\package-info.h</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>

@@ -4,19 +4,20 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_34BC2D73_CAC5_4667_B2FA_A6938BFADF19
-#define DRIVER_34BC2D73_CAC5_4667_B2FA_A6938BFADF19
+#ifndef DRIVER_20FD9FB0_BA0F_4CCE_8B03_98AC1C7B34B0
+#define DRIVER_20FD9FB0_BA0F_4CCE_8B03_98AC1C7B34B0
 
 /* ****************************************************************************************
  * Include folder
  */
-#include "driver/package-info.h"
+
 /* ****************************************************************************************
  * Include
  */
+#include "TCS3472.h"
 
 /* ****************************************************************************************
  * End of file
  */
 
-#endif /* DRIVER_34BC2D73_CAC5_4667-B2FA_A6938BFADF19 */
+#endif /* DRIVER_20FD9FB0_BA0F_4CCE_8B03_98AC1C7B34B0 */
