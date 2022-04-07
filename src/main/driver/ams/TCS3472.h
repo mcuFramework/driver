@@ -30,7 +30,7 @@ namespace driver{
  * Class/Interface/Struct/Enum
  */  
 class driver::ams::TCS3472 extends mcuf::lang::Object implements
-  public mcuf::hal::serial::bus::SerialBusEvent{
+  public hal::serial::SerialBusEvent{
 
   /* **************************************************************************************
    * Enum Type
@@ -108,7 +108,7 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
    * Variable <Private>
    */
   private:
-    mcuf::hal::serial::bus::SerialBus& mSerailBus;
+    hal::serial::SerialBus& mSerailBus;
     mcuf::io::ByteBuffer mByteBufferTransfer;
     mcuf::io::ByteBuffer mByteBufferReceiver;
     uint16_t mColor[3];
@@ -131,7 +131,7 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
     /**
      *
      */
-    TCS3472(Type type, mcuf::hal::serial::bus::SerialBus& serailBus);
+    TCS3472(Type type, hal::serial::SerialBus& serailBus);
 
     /**
      *
@@ -157,7 +157,7 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
      * @param result 0 = successful, other = remaining byte count.
      * @param attachment user data
      */
-    virtual void onSerialBusEvent(mcuf::hal::serial::bus::SerialBusStatus status, 
+    virtual void onSerialBusEvent(hal::serial::SerialBusStatus status, 
                                   int result,
                                   void* attachment) override;
 

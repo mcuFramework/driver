@@ -28,8 +28,8 @@ using driver::ams::TCS3472;
 //-----------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------
-using mcuf::hal::serial::bus::SerialBus;
-using mcuf::hal::serial::bus::SerialBusStatus;
+using hal::serial::SerialBus;
+using hal::serial::SerialBusStatus;
 using mcuf::lang::Memory;
 
 
