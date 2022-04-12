@@ -44,8 +44,7 @@ using mcuf::lang::Memory;
 /**
  *
  */
-TCS3472::TCS3472(Type type, SerialBus& serailBus) construct 
-  mSerailBus(serailBus),
+TCS3472::TCS3472(Type type, SerialBus& serailBus) : mSerailBus(serailBus),
   mByteBufferTransfer(Memory(this->mWriteBuffer, sizeof(this->mWriteBuffer))),
   mByteBufferReceiver(Memory(&this->mRegister, sizeof(mRegister))){
   this->mAddress = 0x29;
