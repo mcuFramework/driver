@@ -4,21 +4,20 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118
-#define DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118
+#ifndef DRIVER_028D664B_D323_4157_9912_1309280DA906
+#define DRIVER_028D664B_D323_4157_9912_1309280DA906
 
 /* ****************************************************************************************
  * Include folder
  */
-#include "ams/package-info.h"
-#include "wirelesstag/package-info.h"
 
 /* ****************************************************************************************
  * Include
  */
+#include "WT32ETH01.h"
 
 /* ****************************************************************************************
  * End of file
  */
 
-#endif /* DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118 */
+#endif /* DRIVER_028D664B_D323_4157_9912_1309280DA906 */

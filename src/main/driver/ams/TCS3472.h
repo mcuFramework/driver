@@ -19,10 +19,8 @@
 /* ****************************************************************************************
  * Namespace
  */  
-namespace driver{
-  namespace ams{
-    class TCS3472;
-  }
+namespace driver::ams{
+  class TCS3472;
 }
 
 
@@ -65,7 +63,7 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
       ADDR_GDATAL  = 0x18,
       ADDR_GDATAH  = 0x19,
       ADDR_BDATAL  = 0x1A,
-      ADDR_BDATAH  = 0x1B,
+      ADDR_BDATAH  = 0x1B
     };
 
   /* **************************************************************************************
@@ -111,7 +109,6 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
     hal::serial::SerialBus& mSerailBus;
     mcuf::io::ByteBuffer mByteBufferTransfer;
     mcuf::io::ByteBuffer mByteBufferReceiver;
-    uint16_t mColor[3];
     uint8_t mWriteBuffer[4];
     uint8_t mAddress;
     bool mBusy;
@@ -136,7 +133,7 @@ class driver::ams::TCS3472 extends mcuf::lang::Object implements
     /**
      *
      */
-    ~TCS3472(void);
+    virtual ~TCS3472(void) override;
 
   /* **************************************************************************************
    * Operator Method
