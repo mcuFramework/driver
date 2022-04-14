@@ -27,7 +27,7 @@ namespace driver::wirelesstag{
 /* ****************************************************************************************
  * Class/Interface/Struct/Enum
  */  
-class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
+class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   public mcuf::io::InputStream,
   public mcuf::io::OutputStream{
 
@@ -73,8 +73,11 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     /**
      * @brief Construct a new WT32ETH01 object
      * 
+     * @param serialPort 
+     * @param enablePin 
+     * @param bufferSize 
      */
-    WT32ETH01(hal::serial::SerialPort& serialPort, hal::general::GeneralPin& enablePin);
+    WT32ETH01(hal::serial::SerialPort& serialPort, hal::general::GeneralPin& enablePin, uint32_t bufferSize);
 
     /**
      * @brief Destroy the WT32ETH01 object
@@ -157,7 +160,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     virtual bool skip(int value, mcuf::io::Future& future) override;
 
   /* **************************************************************************************
-   * Public Method <Override> - mcuf::io::InputStream
+   * Public Method <Override> - mcuf::io::OutputStream
    */
   public:
     /**
@@ -201,7 +204,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
 
 
   /* **************************************************************************************
-   * Public Method - mcuf::io::OutputStream
+   * Public Method
    */
   public:
 
@@ -218,6 +221,45 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return mcuf::net::SocketAddress 
      */
     mcuf::net::SocketAddress getRemodeAddress(void);
+
+    /**
+     * @brief Get the Mac Address object
+     * 
+     * @return mcuf::net::MediaAccessControlAddress 
+     */
+    mcuf::net::MediaAccessControlAddress getMacAddress(void);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool isConnect(void);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool disconnect(void);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool init(void);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool reset(void);
 
     /**
      * @brief 
