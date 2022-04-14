@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------------------
 using driver::wirelesstag::WT32ETH01;
 using hal::serial::SerialPort;
+using hal::serial::SerialPortStatus;
 using hal::general::GeneralPin;
 using mcuf::io::ByteBuffer;
 using mcuf::io::CompletionHandler;
@@ -110,12 +111,21 @@ bool WT32ETH01::read(ByteBuffer& byteBuffer, void* attachment, CompletionHandler
  * @brief 
  * 
  * @param byteBuffer 
- * @param feture 
+ * @param future 
  * @return true 
  * @return false 
  */
-bool WT32ETH01::read(ByteBuffer& byteBuffer, Future& feture){
-  return false;
+bool WT32ETH01::read(ByteBuffer& byteBuffer, Future& future){
+  if(!future.isIdle())
+    return false;
+  
+  future.setWait();
+  bool result = this->read(byteBuffer, nullptr, &future);
+  
+  if(!result)
+    future.clear();
+  
+  return result; 
 }
 /**
  * @brief 
@@ -138,7 +148,16 @@ bool WT32ETH01::skip(int value, void* attachment, CompletionHandler<int, void*>*
  * @return false 
  */
 bool WT32ETH01::skip(int value, Future& future){
-  return false;
+  if(!future.isIdle())
+    return false;
+  
+  future.setWait();
+  bool result = this->skip(value, nullptr, &future);
+  
+  if(!result)
+    future.clear();
+  
+  return result; 
 }
 
 /* ****************************************************************************************
@@ -181,12 +200,35 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandle
  * @brief 
  * 
  * @param byteBuffer 
- * @param feture 
+ * @param future 
  * @return true 
  * @return false 
  */
-bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& feture){
-  return false;
+bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
+  if(!future.isIdle())
+    return false;
+  
+  future.setWait();
+  bool result = this->write(byteBuffer, nullptr, &future);
+  
+  if(!result)
+    future.clear();
+  
+  return result; 
+}
+
+/* ****************************************************************************************
+ * Public Method <Override> - hal::serial::SerialPortEvent
+ */
+/**
+ * @brief 
+ * 
+ * @param status handle status
+ * @param result 0 = successful, other = remaining byte count.
+ * @param attachment user data
+ */
+void WT32ETH01::onSerialPortEvent(SerialPortStatus status, int result, void* attachment){
+
 }
 
 /* ****************************************************************************************

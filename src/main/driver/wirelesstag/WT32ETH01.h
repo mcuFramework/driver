@@ -29,7 +29,8 @@ namespace driver::wirelesstag{
  */  
 class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   public mcuf::io::InputStream,
-  public mcuf::io::OutputStream{
+  public mcuf::io::OutputStream,
+  public hal::serial::SerialPortEvent{
 
   /* **************************************************************************************
    * Enum ConnectType
@@ -56,6 +57,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   /* **************************************************************************************
    * Variable <Private>
    */
+  private:
 
   /* **************************************************************************************
    * Abstract method <Public>
@@ -130,11 +132,11 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @brief 
      * 
      * @param byteBuffer 
-     * @param feture 
+     * @param future 
      * @return true 
      * @return false 
      */
-    virtual bool read(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& feture) override;
+    virtual bool read(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
 
     /**
      * @brief 
@@ -196,13 +198,27 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @brief 
      * 
      * @param byteBuffer 
-     * @param feture 
+     * @param future 
      * @return true 
      * @return false 
      */
-    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& feture) override;
+    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
 
-
+  /* **************************************************************************************
+   * Public Method <Override> - hal::serial::SerialPortEvent
+   */
+  public:
+    /**
+     * @brief 
+     * 
+     * @param status handle status
+     * @param result 0 = successful, other = remaining byte count.
+     * @param attachment user data
+     */
+    virtual void onSerialPortEvent(hal::serial::SerialPortStatus status, 
+                                   int result,
+                                   void* attachment) override;
+                      
   /* **************************************************************************************
    * Public Method
    */
@@ -307,7 +323,25 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   /* **************************************************************************************
    * Private Method
    */
+  private:
+    
+    /**
+     * @brief 
+     * 
+     */
+    void disableEcho(void);
+    
+    /**
+     * @brief 
+     * 
+     */
+    void waitStandby(void);
 
+    /**
+     * @brief 
+     * 
+     */
+    void updateAddress(void);
 };
 
 /* ****************************************************************************************
