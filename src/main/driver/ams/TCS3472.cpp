@@ -56,6 +56,7 @@ TCS3472::TCS3472(Type type, SerialBus& serailBus) : mSerailBus(serailBus),
  */
 TCS3472::~TCS3472(void){
   this->disable();
+  return;
 }
 
 /* ****************************************************************************************

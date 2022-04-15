@@ -49,7 +49,15 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   /* **************************************************************************************
    * Variable <Public>
    */
-
+  public:
+    static const char* const TEXT_MODULE_OK;
+    static const char* const TEXT_RETURN_OK;
+    static const char* const TEXT_RETURN_ERROR;
+    static const char* const TEXT_RETURN_ATE0;
+    static const char* const TEXT_RETURN_ADDRESS_FORMAT;
+    static const char* const TEXT_CMD_ATE_DISABLE;
+    static const char* const TEXT_CMD_GET_ADDRESS;
+  
   /* **************************************************************************************
    * Variable <Protected>
    */

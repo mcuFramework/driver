@@ -1,3 +1,4 @@
+
 /**
  * Copyright (c) 2020 ZxyKira
  * All rights reserved.
@@ -41,6 +42,14 @@ using mcuf::net::SocketAddress;
 /* ****************************************************************************************
  * Variable <Static>
  */
+const char* const WT32ETH01::TEXT_MODULE_OK = "module ok\r\n\0";
+const char* const WT32ETH01::TEXT_RETURN_OK = "\r\nOK\r\n\0";
+const char* const WT32ETH01::TEXT_RETURN_ERROR = "\r\nERROR\r\n\0";
+const char* const WT32ETH01::TEXT_RETURN_ATE0 = "ATE0\r\n\r\nOK\r\n\0";
+const char* const WT32ETH01::TEXT_RETURN_ADDRESS_FORMAT = "ATE0\r\n\r\nOK\r\n\0";
+const char* const WT32ETH01::TEXT_CMD_ATE_DISABLE = "ATE0\r\n\0";
+const char* const WT32ETH01::TEXT_CMD_GET_ADDRESS = "AT+CIFSR\r\n\0";
+
 
 /* ****************************************************************************************
  * Construct Method
