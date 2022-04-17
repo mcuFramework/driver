@@ -30,7 +30,8 @@ namespace driver::wirelesstag{
 class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   public mcuf::io::InputStream,
   public mcuf::io::OutputStream,
-  public hal::serial::SerialPortEvent{
+  public hal::serial::SerialPortEvent,
+  public hal::Base{
 
   /* **************************************************************************************
    * Enum ConnectType
@@ -47,6 +48,47 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
     };
 
   /* **************************************************************************************
+   * Enum ReceiverStatus
+   */
+  private:
+    
+    /**
+     * @brief 
+     * 
+     */
+    enum struct ReceiverStatus : char{
+      WAIT_EMABLE,
+      WAIT_COMMAND,
+      RECEIVER_DATA
+    };
+    
+  /* **************************************************************************************
+   * Enum Status
+   */
+  private:
+    /**
+     * @brief 
+     * 
+     */
+    enum struct Status : char{
+      NOT_INIT,
+      INITD
+    };
+    
+  /* **************************************************************************************
+   * Enum ConnectStatus
+   */
+  private:
+    /**
+     * @brief 
+     * 
+     */
+    enum struct ConnectStatus : char{
+      NO_CONNECT,
+      CONNECT
+    };    
+    
+  /* **************************************************************************************
    * Variable <Public>
    */
   public:
@@ -57,6 +99,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
     static const char* const TEXT_RETURN_ADDRESS_FORMAT;
     static const char* const TEXT_CMD_ATE_DISABLE;
     static const char* const TEXT_CMD_GET_ADDRESS;
+    static const char* const TEXT_SET_IPADDRESS_FORMAT;
   
   /* **************************************************************************************
    * Variable <Protected>
@@ -66,6 +109,22 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
    * Variable <Private>
    */
   private:
+    hal::serial::SerialPort& mSerialPort;
+    hal::general::GeneralPin& mEnablePin;
+    mcuf::net::MediaAccessControlAddress mMac;
+    mcuf::net::SocketAddress mDestSocketAddress;
+    mcuf::net::SocketAddress mSrcSocketAddress;
+    mcuf::io::Future* mWriteFuture;
+    mcuf::io::Future* mReadFuture;
+    mcuf::io::ByteBuffer mWriteByteBuffer;
+    mcuf::io::ByteBuffer mReadByteBuffer;
+    uint8_t mWriteHandleMemory[128];
+    uint8_t mReadHandleMemory[128];
+  
+    Status mStatus;
+    ConnectStatus mConnectStatus;
+    ReceiverStatus mReceiverStatus;
+  
 
   /* **************************************************************************************
    * Abstract method <Public>
@@ -102,6 +161,34 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   /* **************************************************************************************
    * Public Method <Static>
    */
+
+  /* **************************************************************************************
+   * Public Method <Override> - hal::Base
+   */
+  public:
+    /**
+     * @brief uninitialze hardware.
+     * 
+     * @return true 
+     * @return false 
+     */
+    virtual bool deinit(void) override;
+
+    /**
+     * @brief initialze hardware;
+     * 
+     * @return true 
+     * @return false 
+     */
+    virtual bool init(void) override;
+
+    /**
+     * @brief get hardware initialzed status.
+     * 
+     * @return true not init
+     * @return false initd
+     */
+    virtual bool isInit(void) override;
 
   /* **************************************************************************************
    * Public Method <Override> - mcuf::io::InputStream
@@ -275,14 +362,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @return true 
      * @return false 
      */
-    bool init(void);
-
-    /**
-     * @brief 
-     * 
-     * @return true 
-     * @return false 
-     */
     bool reset(void);
 
     /**
@@ -294,7 +373,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @return true 
      * @return false 
      */
-    bool connect(ConnectType type, mcuf::net::SocketAddress remoteAddress, mcuf::io::Future* future);
+    bool connect(ConnectType type, const mcuf::net::SocketAddress& remoteAddress, mcuf::io::Future& future);
 
     /**
      * @brief 
@@ -306,7 +385,45 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @return true 
      * @return false 
      */
-    bool listen(ConnectType type, mcuf::net::SocketAddress remoteAddress, uint16_t destPort, mcuf::io::Future* future);
+    bool listen(ConnectType type, const mcuf::net::SocketAddress& remoteAddress, uint16_t destPort, mcuf::io::Future& future);
+    
+    /**
+     * @brief Set the Static I P Address object
+     * 
+     * @param ip 
+     * @param gateway 
+     * @param mask 
+     * @return true 
+     * @return false 
+     */
+    bool setStaticIPAddress(const mcuf::net::InternetProtocolAddress& ip,
+                            const mcuf::net::InternetProtocolAddress& gateway,
+                            const mcuf::net::InternetProtocolAddress& mask);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool setDHCP(void);
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool updateStatus(void);
+
+    /**
+     * @brief 
+     * 
+     * @param future 
+     * @return true 
+     * @return false 
+     */
+    bool updateStatus(mcuf::io::Future& future);
 
   /* **************************************************************************************
    * Protected Method <Static>
@@ -344,12 +461,8 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * 
      */
     void waitStandby(void);
-
-    /**
-     * @brief 
-     * 
-     */
-    void updateAddress(void);
+  
+    bool writeCommand(const char* command);
 };
 
 /* ****************************************************************************************

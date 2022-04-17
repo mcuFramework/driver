@@ -440,6 +440,36 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>main\driver\wirelesstag\internal</GroupName>
+          <Files>
+            <File>
+              <FileName>package-info.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\wirelesstag\internal\package-info.h</FilePath>
+            </File>
+            <File>
+              <FileName>WT32ETH01Receiver.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main\driver\wirelesstag\internal\WT32ETH01Receiver.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>WT32ETH01Receiver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\wirelesstag\internal\WT32ETH01Receiver.h</FilePath>
+            </File>
+            <File>
+              <FileName>WT32ETH01Transfer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main\driver\wirelesstag\internal\WT32ETH01Transfer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>WT32ETH01Transfer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\wirelesstag\internal\WT32ETH01Transfer.h</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>

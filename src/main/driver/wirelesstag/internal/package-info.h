@@ -4,21 +4,21 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_6456446A_6403_4508_9C96_7505FC91251E
-#define DRIVER_6456446A_6403_4508_9C96_7505FC91251E
+#ifndef DRIVER_2554BE77_5653_4E69_932D_1057A027DA1A
+#define DRIVER_2554BE77_5653_4E69_932D_1057A027DA1A
 
 /* ****************************************************************************************
  * Include folder
  */
-#include "internal/package-info.h"
 
 /* ****************************************************************************************
  * Include
  */
-#include "WT32ETH01.h"
+#include "WT32ETH01Receiver.h"
+#include "WT32ETH01Transfer.h"
 
 /* ****************************************************************************************
  * End of file
  */
 
-#endif /* DRIVER_6456446A_6403_4508_9C96_7505FC91251E */
+#endif /* DRIVER_2554BE77_5653_4E69_932D_1057A027DA1A */

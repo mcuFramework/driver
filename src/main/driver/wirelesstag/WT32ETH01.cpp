@@ -50,6 +50,8 @@ const char* const WT32ETH01::TEXT_RETURN_ADDRESS_FORMAT = "ATE0\r\n\r\nOK\r\n\0"
 const char* const WT32ETH01::TEXT_CMD_ATE_DISABLE = "ATE0\r\n\0";
 const char* const WT32ETH01::TEXT_CMD_GET_ADDRESS = "AT+CIFSR\r\n\0";
 
+const char* const WT32ETH01::TEXT_SET_IPADDRESS_FORMAT = "AT+CIPETH_DEF=\"%s\",\"%s\",\"%s\"\0";
+
 
 /* ****************************************************************************************
  * Construct Method
@@ -59,7 +61,16 @@ const char* const WT32ETH01::TEXT_CMD_GET_ADDRESS = "AT+CIFSR\r\n\0";
  * @brief Construct a new WT32ETH01 object
  * 
  */
-WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin, uint32_t bufferSize) : RingBuffer(bufferSize){
+WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin, uint32_t bufferSize) : 
+RingBuffer(bufferSize),
+mSerialPort(serialPort),
+mEnablePin(enablePin),
+mWriteByteBuffer(Memory(this->mWriteHandleMemory, sizeof(this->mWriteHandleMemory))),
+mReadByteBuffer(Memory(this->mReadHandleMemory, sizeof(this->mReadHandleMemory))){
+  
+  this->mConnectStatus = ConnectStatus::NO_CONNECT;
+  this->mReceiverStatus = ReceiverStatus::WAIT_EMABLE;
+  this->mStatus = Status::NOT_INIT;
   return;
 }
 
@@ -68,6 +79,7 @@ WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin, uint32_t buf
  * 
  */
 WT32ETH01::~WT32ETH01(void){
+  this->deinit();
   return;
 }
 
@@ -241,6 +253,65 @@ void WT32ETH01::onSerialPortEvent(SerialPortStatus status, int result, void* att
 }
 
 /* ****************************************************************************************
+ * Public Method <Override> - hal::Base
+ */
+
+/**
+ * @brief uninitialze hardware.
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::deinit(void){
+  if(!this->isInit())
+    return false;
+  
+  this->mSerialPort.deinit();
+  this->mStatus = Status::NOT_INIT;
+  
+  return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::init(void){
+  if(this->isInit())
+    return false;
+  
+  bool result = false;
+  this->mEnablePin.setOutput();
+  this->mEnablePin.setLow();
+  
+  if(!this->mSerialPort.isInit())
+    result = this->mSerialPort.init();
+  
+  if(!result)
+    return false;
+  
+  if(!this->mSerialPort.baudrate(115200))
+    return false;
+  
+  this->mSerialPort.clear();
+  this->mEnablePin.setHigh();
+  
+  return true;
+}
+
+/**
+ * @brief get hardware initialzed status.
+ * 
+ * @return true not init
+ * @return false initd
+ */
+bool WT32ETH01::isInit(void){
+  return (this->mStatus == Status::INITD);
+}
+
+/* ****************************************************************************************
  * Public Method
  */
 
@@ -300,16 +371,6 @@ bool WT32ETH01::disconnect(void){
  * @return true 
  * @return false 
  */
-bool WT32ETH01::init(void){
-  return false;
-}
-
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
 bool WT32ETH01::reset(void){
   return false;
 }
@@ -323,7 +384,7 @@ bool WT32ETH01::reset(void){
  * @return true 
  * @return false 
  */
-bool WT32ETH01::connect(ConnectType type, SocketAddress remoteAddress, Future* future){
+bool WT32ETH01::connect(ConnectType type, const SocketAddress& remoteAddress, Future& future){
   return false;
 }
 
@@ -337,7 +398,32 @@ bool WT32ETH01::connect(ConnectType type, SocketAddress remoteAddress, Future* f
  * @return true 
  * @return false 
  */
-bool WT32ETH01::listen(ConnectType type, SocketAddress remoteAddress, uint16_t destPort, Future* future){
+bool WT32ETH01::listen(ConnectType type, const SocketAddress& remoteAddress, uint16_t destPort, Future& future){
+  return false;
+}
+
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::updateStatus(void){
+  Future future = Future();
+  bool result;
+  result = this->updateStatus(future);
+  future.waitDone();
+  return result;
+}
+
+/**
+ * @brief 
+ * 
+ * @param future 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::updateStatus(mcuf::io::Future& future){
   return false;
 }
 

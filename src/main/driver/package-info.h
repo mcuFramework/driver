@@ -4,8 +4,8 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118
-#define DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118
+#ifndef DRIVER_933CC910_A223_4266_9D0F_06E3F822DF43
+#define DRIVER_933CC910_A223_4266_9D0F_06E3F822DF43
 
 /* ****************************************************************************************
  * Include folder
@@ -21,4 +21,4 @@
  * End of file
  */
 
-#endif /* DRIVER_A82E4BEC_B8DA_454E_8FEF_93083AF7F118 */
+#endif /* DRIVER_933CC910_A223_4266_9D0F_06E3F822DF43 */
