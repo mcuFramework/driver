@@ -27,6 +27,7 @@
 
 //-----------------------------------------------------------------------------------------
 using driver::wirelesstag::WT32ETH01;
+using driver::wirelesstag::internal::WT32ETH01Receiver;
 using hal::serial::SerialPort;
 using hal::serial::SerialPortStatus;
 using hal::general::GeneralPin;
@@ -42,16 +43,6 @@ using mcuf::net::SocketAddress;
 /* ****************************************************************************************
  * Variable <Static>
  */
-const char* const WT32ETH01::TEXT_MODULE_OK = "module ok\r\n\0";
-const char* const WT32ETH01::TEXT_RETURN_OK = "\r\nOK\r\n\0";
-const char* const WT32ETH01::TEXT_RETURN_ERROR = "\r\nERROR\r\n\0";
-const char* const WT32ETH01::TEXT_RETURN_ATE0 = "ATE0\r\n\r\nOK\r\n\0";
-const char* const WT32ETH01::TEXT_RETURN_ADDRESS_FORMAT = "ATE0\r\n\r\nOK\r\n\0";
-const char* const WT32ETH01::TEXT_CMD_ATE_DISABLE = "ATE0\r\n\0";
-const char* const WT32ETH01::TEXT_CMD_GET_ADDRESS = "AT+CIFSR\r\n\0";
-
-const char* const WT32ETH01::TEXT_SET_IPADDRESS_FORMAT = "AT+CIPETH_DEF=\"%s\",\"%s\",\"%s\"\0";
-
 
 /* ****************************************************************************************
  * Construct Method
@@ -61,12 +52,12 @@ const char* const WT32ETH01::TEXT_SET_IPADDRESS_FORMAT = "AT+CIPETH_DEF=\"%s\",\
  * @brief Construct a new WT32ETH01 object
  * 
  */
-WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin, uint32_t bufferSize) : 
-RingBuffer(bufferSize),
+WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin) : 
 mSerialPort(serialPort),
 mEnablePin(enablePin),
-mWriteByteBuffer(Memory(this->mWriteHandleMemory, sizeof(this->mWriteHandleMemory))),
-mReadByteBuffer(Memory(this->mReadHandleMemory, sizeof(this->mReadHandleMemory))){
+mSerialPortInputStream(serialPort),
+mSerialPortOutputStream(serialPort),
+mReceiver(mSerialPortInputStream, *this){
   
   this->mConnectStatus = ConnectStatus::NO_CONNECT;
   this->mReceiverStatus = ReceiverStatus::WAIT_EMABLE;
@@ -241,15 +232,33 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
 /* ****************************************************************************************
  * Public Method <Override> - hal::serial::SerialPortEvent
  */
+
 /**
  * @brief 
  * 
- * @param status handle status
- * @param result 0 = successful, other = remaining byte count.
- * @param attachment user data
+ * @param t 
  */
-void WT32ETH01::onSerialPortEvent(SerialPortStatus status, int result, void* attachment){
-
+void WT32ETH01::accept(WT32ETH01Receiver::Event t){
+  switch(t){
+    case WT32ETH01Receiver::Event::MODULE_OK:
+      mcuf::lang::System::out().print("MODULE_OK\n");
+      break;
+    case WT32ETH01Receiver::Event::OK:
+      mcuf::lang::System::out().print("OK\n");
+      break;
+    case WT32ETH01Receiver::Event::ERROR:
+      mcuf::lang::System::out().print("ERROR\n");
+      break;
+    case WT32ETH01Receiver::Event::NO_IP:
+      mcuf::lang::System::out().print("NO_IP\n");
+      break;
+    case WT32ETH01Receiver::Event::ON_SEND:
+      mcuf::lang::System::out().print("ON_SEND\n");
+      break;
+    case WT32ETH01Receiver::Event::SEND_OK:
+      mcuf::lang::System::out().print("SEND_OK\n");
+      break;
+  }
 }
 
 /* ****************************************************************************************

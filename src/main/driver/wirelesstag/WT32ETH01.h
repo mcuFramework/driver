@@ -15,6 +15,7 @@
 #include "mcuf.h"
 
 //-----------------------------------------------------------------------------------------
+#include "driver\wirelesstag\internal\WT32ETH01Receiver.h"
 
 /* ****************************************************************************************
  * Namespace
@@ -27,11 +28,11 @@ namespace driver::wirelesstag{
 /* ****************************************************************************************
  * Class/Interface/Struct/Enum
  */  
-class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
+class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
   public mcuf::io::InputStream,
   public mcuf::io::OutputStream,
-  public hal::serial::SerialPortEvent,
-  public hal::Base{
+  public hal::Base,
+  private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>{
 
   /* **************************************************************************************
    * Enum ConnectType
@@ -92,14 +93,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
    * Variable <Public>
    */
   public:
-    static const char* const TEXT_MODULE_OK;
-    static const char* const TEXT_RETURN_OK;
-    static const char* const TEXT_RETURN_ERROR;
-    static const char* const TEXT_RETURN_ATE0;
-    static const char* const TEXT_RETURN_ADDRESS_FORMAT;
-    static const char* const TEXT_CMD_ATE_DISABLE;
-    static const char* const TEXT_CMD_GET_ADDRESS;
-    static const char* const TEXT_SET_IPADDRESS_FORMAT;
   
   /* **************************************************************************************
    * Variable <Protected>
@@ -111,16 +104,9 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
   private:
     hal::serial::SerialPort& mSerialPort;
     hal::general::GeneralPin& mEnablePin;
-    mcuf::net::MediaAccessControlAddress mMac;
-    mcuf::net::SocketAddress mDestSocketAddress;
-    mcuf::net::SocketAddress mSrcSocketAddress;
-    mcuf::io::Future* mWriteFuture;
-    mcuf::io::Future* mReadFuture;
-    mcuf::io::ByteBuffer mWriteByteBuffer;
-    mcuf::io::ByteBuffer mReadByteBuffer;
-    uint8_t mWriteHandleMemory[128];
-    uint8_t mReadHandleMemory[128];
-  
+    mcuf::io::SerialPortInputStream mSerialPortInputStream;
+    mcuf::io::SerialPortOutputStream mSerialPortOutputStream;
+    driver::wirelesstag::internal::WT32ETH01Receiver mReceiver;
     Status mStatus;
     ConnectStatus mConnectStatus;
     ReceiverStatus mReceiverStatus;
@@ -146,7 +132,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @param enablePin 
      * @param bufferSize 
      */
-    WT32ETH01(hal::serial::SerialPort& serialPort, hal::general::GeneralPin& enablePin, uint32_t bufferSize);
+    WT32ETH01(hal::serial::SerialPort& serialPort, hal::general::GeneralPin& enablePin);
 
     /**
      * @brief Destroy the WT32ETH01 object
@@ -298,21 +284,17 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
      * @return false 
      */
     virtual bool write(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
-
+                      
   /* **************************************************************************************
-   * Public Method <Override> - hal::serial::SerialPortEvent
+   * Public Method <Override> - mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>
    */
   public:
     /**
      * @brief 
      * 
-     * @param status handle status
-     * @param result 0 = successful, other = remaining byte count.
-     * @param attachment user data
+     * @param t 
      */
-    virtual void onSerialPortEvent(hal::serial::SerialPortStatus status, 
-                                   int result,
-                                   void* attachment) override;
+    virtual void accept(internal::WT32ETH01Receiver::Event t) override;
                       
   /* **************************************************************************************
    * Public Method
@@ -450,19 +432,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::io::RingBuffer implements
    */
   private:
     
-    /**
-     * @brief 
-     * 
-     */
-    void disableEcho(void);
-    
-    /**
-     * @brief 
-     * 
-     */
-    void waitStandby(void);
-  
-    bool writeCommand(const char* command);
 };
 
 /* ****************************************************************************************
