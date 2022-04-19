@@ -43,9 +43,9 @@ const char* const WT32ETH01Receiver::TEXT_NO_IP = "no ip";
 const char* const WT32ETH01Receiver::TEXT_ON_SEND = "> ";
 const char* const WT32ETH01Receiver::TEXT_MODULE_OK = "module ok";
 const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHIP = "+CIFSR:ETHIP,";
-const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHIP_FORMAT = "+CIFSR:ETHIP,\"%[^\"]\r\n\0";
+const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHIP_FORMAT = "+CIFSR:ETHIP,\"%[^\"]\0";
 const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHMAC = "+CIFSR:ETHMAC,";
-const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHMAC_FORMAT = "+CIFSR:ETHMAC,\"%[^\"]\r\n\0";
+const char* const WT32ETH01Receiver::TEXT_CIFSR_ETHMAC_FORMAT = "+CIFSR:ETHMAC,\"%[^\"]\0";
 const char* const WT32ETH01Receiver::TEXT_IPD = "+IPD,";
 const char* const WT32ETH01Receiver::TEXT_IPD_FORMAT = "+IPD,%d:\0";
 
@@ -208,10 +208,14 @@ void WT32ETH01Receiver::beginReadAtChar(char ch){
 void WT32ETH01Receiver::beginReadAtLength(uint16_t len){
   this->mStatus = Status::WAIT_READ_LEN;
   uint16_t max = static_cast<uint16_t>(this->mByteBuffer.capacity() - this->mByteBuffer.position());
-  if(len > max)
-    this->mWaitLength = len - max;
   
-  len = max;
+  if(len > max){
+    this->mWaitLength = len - max;
+    len = max;
+  }else{
+    this->mWaitLength = 0;
+  }
+  
   this->mByteBuffer.limit(this->mByteBuffer.position() + len);
   this->mInputStream.read(this->mByteBuffer, this, this);
 }
@@ -250,14 +254,30 @@ void WT32ETH01Receiver::eventWaitHead(void){
  * 
  */
 void WT32ETH01Receiver::eventWaitChar(void){
-  char ch = this->mByteBuffer[this->mByteBuffer.position()];
-  
-  if(ch != this->mWaitChar){
-    this->beginReadNext();
-    return;
+  char ch;
+  while(true){
+    ch = this->mByteBuffer[this->mByteBuffer.position()-1];
+    if(ch != this->mWaitChar){
+      if(this->mInputStream.avariable() <= 0){
+        this->beginReadNext();
+        return;
+        
+      }else{
+        this->mByteBuffer.limit(this->mByteBuffer.position()+1);
+        this->mInputStream.read(this->mByteBuffer);
+      }
+
+    }else{
+      break;
+    }
   }
+
   
   switch(ch){
+    case ':':
+      this->eventStreamLength();
+      break;    
+
     case ',':
       this->eventCommand();
       break;
@@ -304,9 +324,6 @@ void WT32ETH01Receiver::eventWaitLen(void){
 void  WT32ETH01Receiver::eventResult(void){
   char ch = this->mByteBuffer[0];
   switch(ch){
-    case ':':
-      this->eventStreamLength();
-      break;
     
     case '+':
       this->eventConvertReturn();
@@ -352,11 +369,11 @@ void  WT32ETH01Receiver::eventResult(void){
 /**
  * @brief 
  * 
- */
+ */ 
 void WT32ETH01Receiver::eventCommand(void){
-  if(this->mByteBuffer.indexOfString(WT32ETH01Receiver::TEXT_IPD) != -1)
+  if(this->mByteBuffer.indexOfString(WT32ETH01Receiver::TEXT_IPD) != -1){
     this->beginReadAtChar(':');
-
+  }
   else
     this->beginReadAtChar('\n');
   
@@ -385,6 +402,7 @@ void WT32ETH01Receiver::eventConvertReturn(void){
     this->mMediaAccessControlAddress.setMediaAccessControlAddress(cache);
     return;
   }
+ 
 }
 
 /**

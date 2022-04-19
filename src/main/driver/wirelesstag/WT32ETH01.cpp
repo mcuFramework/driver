@@ -89,11 +89,20 @@ WT32ETH01::~WT32ETH01(void){
 /**
  * @brief 
  * 
+ * @return int 
+ */
+int WT32ETH01::avariable(void){
+  return this->mReceiver.avariable();
+}
+
+/**
+ * @brief 
+ * 
  * @return true 
  * @return false 
  */
 bool WT32ETH01::abortRead(void){
-  return false;
+  return this->mReceiver.abortRead();
 }
 
 /**
@@ -103,8 +112,18 @@ bool WT32ETH01::abortRead(void){
  * @return false isn't busy.
  */
 bool WT32ETH01::readBusy(void){
-  return false;
+  return this->mReceiver.readBusy();
 }
+
+/**
+ * @brief 
+ * 
+ * @param byteBuffer 
+ * @return int 
+ */
+bool WT32ETH01::read(mcuf::io::ByteBuffer& byteBuffer){
+  return this->mReceiver.read(byteBuffer);
+}   
 
 /**
  * @brief nonblocking
@@ -116,7 +135,7 @@ bool WT32ETH01::readBusy(void){
  * @return false fail.
  */
 bool WT32ETH01::read(ByteBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
-  return false;
+  return this->mReceiver.read(byteBuffer, attachment, handler);
 }
 
 /**
@@ -128,16 +147,7 @@ bool WT32ETH01::read(ByteBuffer& byteBuffer, void* attachment, CompletionHandler
  * @return false 
  */
 bool WT32ETH01::read(ByteBuffer& byteBuffer, Future& future){
-  if(!future.isIdle())
-    return false;
-  
-  future.setWait();
-  bool result = this->read(byteBuffer, nullptr, &future);
-  
-  if(!result)
-    future.clear();
-  
-  return result; 
+  return this->mReceiver.read(byteBuffer, future);
 }
 /**
  * @brief 
@@ -149,7 +159,7 @@ bool WT32ETH01::read(ByteBuffer& byteBuffer, Future& future){
  * @return false 
  */
 bool WT32ETH01::skip(int value, void* attachment, CompletionHandler<int, void*>* handler){
-  return false;
+  return this->mReceiver.skip(value, attachment, handler);
 }
 /**
  * @brief 
@@ -160,16 +170,7 @@ bool WT32ETH01::skip(int value, void* attachment, CompletionHandler<int, void*>*
  * @return false 
  */
 bool WT32ETH01::skip(int value, Future& future){
-  if(!future.isIdle())
-    return false;
-  
-  future.setWait();
-  bool result = this->skip(value, nullptr, &future);
-  
-  if(!result)
-    future.clear();
-  
-  return result; 
+  return this->mReceiver.skip(value, future);
 }
 
 /* ****************************************************************************************
@@ -239,6 +240,7 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
  * @param t 
  */
 void WT32ETH01::accept(WT32ETH01Receiver::Event t){
+  
   switch(t){
     case WT32ETH01Receiver::Event::MODULE_OK:
       mcuf::lang::System::out().print("MODULE_OK\n");
@@ -259,6 +261,7 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
       mcuf::lang::System::out().print("SEND_OK\n");
       break;
   }
+
 }
 
 /* ****************************************************************************************
@@ -291,20 +294,15 @@ bool WT32ETH01::init(void){
   if(this->isInit())
     return false;
   
-  bool result = false;
   this->mEnablePin.setOutput();
   this->mEnablePin.setLow();
   
-  if(!this->mSerialPort.isInit())
-    result = this->mSerialPort.init();
+  this->mSerialPort.init();
   
-  if(!result)
-    return false;
-  
-  if(!this->mSerialPort.baudrate(115200))
-    return false;
+  this->mSerialPort.baudrate(115200);
   
   this->mSerialPort.clear();
+  this->mReceiver.start();
   this->mEnablePin.setHigh();
   
   return true;
@@ -330,8 +328,7 @@ bool WT32ETH01::isInit(void){
  * @return mcuf::net::SocketAddress 
  */
 SocketAddress WT32ETH01::getLocalAddress(void){
-  uint8_t cache[4] = {0,0,0,0};
-  return SocketAddress(cache, 0);
+  return SocketAddress(this->mReceiver.mInternetProtocolAddress, 0);
 }
 
 /**
@@ -350,8 +347,7 @@ SocketAddress WT32ETH01::getRemodeAddress(void){
  * @return mcuf::net::MediaAccessControlAddress 
  */
 MediaAccessControlAddress WT32ETH01::getMacAddress(void){
-  uint8_t cache[6] = {0,0,0,0,0,0};
-  return MediaAccessControlAddress(cache);
+  return this->mReceiver.mMediaAccessControlAddress;
 }
 
 /**

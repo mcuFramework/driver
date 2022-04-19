@@ -183,6 +183,13 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     /**
      * @brief 
      * 
+     * @return int 
+     */
+    virtual int avariable(void) override;
+    
+    /**
+     * @brief 
+     * 
      * @return true 
      * @return false 
      */
@@ -195,6 +202,14 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return false isn't busy.
      */
     virtual bool readBusy(void) override;
+    
+    /**
+     * @brief 
+     * 
+     * @param byteBuffer 
+     * @return int 
+     */
+    virtual bool read(mcuf::io::ByteBuffer& byteBuffer) override;    
     
     /**
      * @brief nonblocking
