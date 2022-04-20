@@ -44,6 +44,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
       WRITE_COMMAND,
       WRITE_USER_DATALEN,
       WAIT_BEGIN_FLAG,
+      WAIT_SEND_OK_FLAG,
       WRITE_USER_DATA
     };
     
@@ -245,6 +246,17 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return false 
      */
     bool setStaticAddress(const uint8_t* ip, const uint8_t* gateway, const uint8_t* mask);
+    
+    /**
+     * @brief Set the Static Address object
+     * 
+     * @param ip 
+     * @param gateway 
+     * @param mask 
+     * @return true 
+     * @return false 
+     */
+    bool setStaticAddress(const uint32_t& ip, const uint32_t& gateway, const uint32_t& mask);    
 
     /**
      * @brief Set the Connect object
@@ -256,7 +268,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return true 
      * @return false 
      */
-    bool setConnect(ConnectType type, const uint8_t* ip, uint16_t destPort, uint16_t localPort);
+    bool setConnect(ConnectType type, const mcuf::net::SocketAddress& socketAddress);
 
     /**
      * @brief Set the On Send Flag object
@@ -265,6 +277,15 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return false 
      */
     bool setOnSendFlag(void);
+    
+    /**
+     * @brief Set the Send Ok Flag object
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool setSendOkFlag(void);
+    
 
   /* **************************************************************************************
    * Protected Method <Static>
@@ -310,8 +331,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return false 
      */
     bool directWrite(mcuf::io::ByteBuffer* byteBuffer);
-
-
+   
 };
 
 /* ****************************************************************************************

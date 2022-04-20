@@ -168,19 +168,24 @@ bool WT32ETH01Transfer::write(ByteBuffer& byteBuffer, Future& future){
  */
 void WT32ETH01Transfer::completed(int result, void* attachment){
   switch(this->mStatus){
+    /* --------------------------------------------------------------------------------- */
     case Status::IDLE:
     case Status::WAIT_BEGIN_FLAG:
+    case Status::WAIT_SEND_OK_FLAG:
       break;
     
+    /* --------------------------------------------------------------------------------- */
     case Status::WRITE_COMMAND:
       this->mStatus = Status::IDLE;
       this->mEvent.accept(Event::WRITE_SUCCESSFUL);
       break;
     
+    /* --------------------------------------------------------------------------------- */
     case Status::WRITE_USER_DATA:
-      this->executeHandler(true);
+      this->mStatus = Status::WAIT_SEND_OK_FLAG;
       break;
     
+    /* --------------------------------------------------------------------------------- */
     case Status::WRITE_USER_DATALEN:
       this->mStatus = Status::WAIT_BEGIN_FLAG;
       break;
@@ -219,10 +224,7 @@ bool WT32ETH01Transfer::isCommandBusy(void){
  * 
  */
 void WT32ETH01Transfer::start(void){
-  this->mOutputStream.abortWrite();
-  this->clear();
-  this->mStatus = Status::IDLE;
-  this->mByteBuffer = nullptr;
+  this->stop();
   return;
 }
 
@@ -232,7 +234,9 @@ void WT32ETH01Transfer::start(void){
  */
 void WT32ETH01Transfer::stop(void){
   this->mOutputStream.abortWrite();
+  this->clear();
   this->mStatus = Status::IDLE;
+  this->mByteBuffer = nullptr;
 }
 
 /**
@@ -295,8 +299,23 @@ bool WT32ETH01Transfer::setStaticAddress(const uint8_t* ip, const uint8_t* gatew
   this->clear();
   this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_STATIC_IP_FORMAT, ipa, gatewaya, maska);
   this->flip();
-  this->directWrite(this);
-  return false;
+  return this->directWrite(this);
+}
+
+/**
+ * @brief Set the Static Address object
+ * 
+ * @param ip 
+ * @param gateway 
+ * @param mask 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01Transfer::setStaticAddress(const uint32_t& ip, const uint32_t& gateway, const uint32_t& mask){
+  const uint8_t* cip = reinterpret_cast<const uint8_t*>(&ip);
+  const uint8_t* cgateway = reinterpret_cast<const uint8_t*>(&gateway);
+  const uint8_t* cmask = reinterpret_cast<const uint8_t*>(&mask);
+  return this->setStaticAddress(cip, cgateway, cmask);
 }
 
 /**
@@ -309,12 +328,15 @@ bool WT32ETH01Transfer::setStaticAddress(const uint8_t* ip, const uint8_t* gatew
  * @return true 
  * @return false 
  */
-bool WT32ETH01Transfer::setConnect(ConnectType type, const uint8_t* ip, uint16_t destPort, uint16_t localPort){
+bool WT32ETH01Transfer::setConnect(ConnectType type, const mcuf::net::SocketAddress& socketAddress){
   if(this->mStatus != Status::IDLE)
     return false;
   
   this->mStatus = Status::WRITE_COMMAND;
-  
+  uint8_t ip[4];
+  uint16_t port = socketAddress.getPort();
+  socketAddress.getAddress(ip);
+
   char ipa[16];
   String::format(ipa, 16, WT32ETH01Transfer::TEXT_IPADDRESS_FORMAT, ip[0], ip[1], ip[2], ip[3]);
   this->clear();
@@ -338,7 +360,7 @@ bool WT32ETH01Transfer::setConnect(ConnectType type, const uint8_t* ip, uint16_t
       break;    
   }
   
-  this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_CONNECT_FORMAT, mode, ipa, destPort, localPort);
+  this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_CONNECT_FORMAT, mode, ipa, port, port);
   this->flip();
   
   return this->directWrite(this);
@@ -361,6 +383,21 @@ bool WT32ETH01Transfer::setOnSendFlag(void){
     this->mStatus = Status::WAIT_BEGIN_FLAG;
   
   return result;
+}
+
+/**
+ * @brief Set the Send Ok Flag object
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01Transfer::setSendOkFlag(void){
+  if(this->mStatus != Status::WAIT_SEND_OK_FLAG)
+    return false;
+  
+  this->executeHandler(true);
+  
+  return true;
 }
 
 /* ****************************************************************************************

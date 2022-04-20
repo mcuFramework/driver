@@ -130,6 +130,7 @@ void WT32ETH01Receiver::failed(void* exc, void* attachment){
  * 
  */
 void WT32ETH01Receiver::start(void){
+  this->stop();
   this->beginReadHead();
 }
 

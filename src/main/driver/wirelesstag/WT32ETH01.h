@@ -61,22 +61,18 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     enum struct Status : char{
       NOT_INIT,
       WAIT_INIT,
+      WAIT_INIT_SET_ADDRESS,
       INITD,
+      HANDLE,
+      HANDLE_CONNECTS_UPDATE_IP,
+      HANDLE_CONNECTC_UPDATE_IP,
+      HANDLE_CONNECT,
       TRANSFER
     };
     
   /* **************************************************************************************
    * Enum ConnectStatus
    */
-  private:
-    /**
-     * @brief 
-     * 
-     */
-    enum struct ConnectStatus : char{
-      NO_CONNECT,
-      CONNECT
-    };    
     
   /* **************************************************************************************
    * Variable <Public>
@@ -98,12 +94,12 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     driver::wirelesstag::internal::WT32ETH01Receiver mReceiver;
     driver::wirelesstag::internal::WT32ETH01Transfer mTransfer;
     mcuf::net::SocketAddress mRemoteAddress;
+    mcuf::io::Future* mFuture;
     uint32_t mIp;
     uint32_t mGateway;
     uint32_t mMask;
     Status mStatus;
-    ConnectStatus mConnectStatus;
-  
+    driver::wirelesstag::internal::WT32ETH01Transfer::ConnectType mConnectType;
 
   /* **************************************************************************************
    * Abstract method <Public>
@@ -347,6 +343,13 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
   public:
 
     /**
+     * @brief 
+     * 
+     * @return mcuf::net::InternetProtocolAddress 
+     */
+    mcuf::net::InternetProtocolAddress getIP(void);
+  
+    /**
      * @brief Get the Local Address object
      * 
      * @return mcuf::net::SocketAddress 
@@ -406,13 +409,12 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @brief 
      * 
      * @param type 
-     * @param remoteAddress 
-     * @param destPort 
+     * @param port 
      * @param future 
      * @return true 
      * @return false 
      */
-    bool listen(ConnectType type, const mcuf::net::SocketAddress& remoteAddress, uint16_t destPort, mcuf::io::Future& future);
+    bool listen(ConnectType type, const uint16_t port, mcuf::io::Future& future);
     
     /**
      * @brief Set the Static I P Address object
@@ -468,6 +470,27 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
    */
   private:
     
+    /**
+     * @brief 
+     * 
+     * @param successful 
+     */
+    void executeHandle(bool successful);
+    
+    /**
+     * @brief 
+     * 
+     */    
+    void eventOk(void);
+  
+    /**
+     * @brief Set the Future object
+     * 
+     * @param future 
+     * @return true 
+     * @return false 
+     */
+    bool setFuture(mcuf::io::Future& future);
 };
 
 /* ****************************************************************************************
