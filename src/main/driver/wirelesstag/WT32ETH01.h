@@ -16,6 +16,7 @@
 
 //-----------------------------------------------------------------------------------------
 #include "driver\wirelesstag\internal\WT32ETH01Receiver.h"
+#include "driver\wirelesstag\internal\WT32ETH01Transfer.h"
 
 /* ****************************************************************************************
  * Namespace
@@ -32,7 +33,8 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
   public mcuf::io::InputStream,
   public mcuf::io::OutputStream,
   public hal::Base,
-  private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>{
+  private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>,
+  private mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>{
 
   /* **************************************************************************************
    * Enum ConnectType
@@ -47,21 +49,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
       TCP,
       UDP
     };
-
-  /* **************************************************************************************
-   * Enum ReceiverStatus
-   */
-  private:
-    
-    /**
-     * @brief 
-     * 
-     */
-    enum struct ReceiverStatus : char{
-      WAIT_EMABLE,
-      WAIT_COMMAND,
-      RECEIVER_DATA
-    };
     
   /* **************************************************************************************
    * Enum Status
@@ -73,7 +60,9 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      */
     enum struct Status : char{
       NOT_INIT,
-      INITD
+      WAIT_INIT,
+      INITD,
+      TRANSFER
     };
     
   /* **************************************************************************************
@@ -107,9 +96,13 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     mcuf::io::SerialPortInputStream mSerialPortInputStream;
     mcuf::io::SerialPortOutputStream mSerialPortOutputStream;
     driver::wirelesstag::internal::WT32ETH01Receiver mReceiver;
+    driver::wirelesstag::internal::WT32ETH01Transfer mTransfer;
+    mcuf::net::SocketAddress mRemoteAddress;
+    uint32_t mIp;
+    uint32_t mGateway;
+    uint32_t mMask;
     Status mStatus;
     ConnectStatus mConnectStatus;
-    ReceiverStatus mReceiverStatus;
   
 
   /* **************************************************************************************
@@ -202,6 +195,32 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return false isn't busy.
      */
     virtual bool readBusy(void) override;
+    
+    /**
+     * @brief pop buffer byte non blocking.
+     * 
+     * @param result 
+     * @return true has data in buffer.
+     * @return false no data in buffer.
+     */
+    virtual bool getByte(char& result) override;
+
+    /**
+     * @brief 
+     * 
+     * @param byteBuffer 
+     * @return int 
+     */
+    virtual int get(mcuf::io::ByteBuffer& byteBuffer) override;
+
+    /**
+     * @brief 
+     * 
+     * @param buffer 
+     * @param bufferSize 
+     * @return int 
+     */
+    virtual int get(void* buffer, int bufferSize) override;    
     
     /**
      * @brief 
@@ -310,6 +329,17 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @param t 
      */
     virtual void accept(internal::WT32ETH01Receiver::Event t) override;
+  
+  /* **************************************************************************************
+   * Public Method <Override> - mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>
+   */
+  public:
+    /**
+     * @brief 
+     * 
+     * @param t 
+     */
+    virtual void accept(internal::WT32ETH01Transfer::Event t) override;
                       
   /* **************************************************************************************
    * Public Method
@@ -412,15 +442,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return false 
      */
     bool updateStatus(void);
-
-    /**
-     * @brief 
-     * 
-     * @param future 
-     * @return true 
-     * @return false 
-     */
-    bool updateStatus(mcuf::io::Future& future);
 
   /* **************************************************************************************
    * Protected Method <Static>

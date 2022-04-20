@@ -28,6 +28,7 @@
 //-----------------------------------------------------------------------------------------
 using driver::wirelesstag::WT32ETH01;
 using driver::wirelesstag::internal::WT32ETH01Receiver;
+using driver::wirelesstag::internal::WT32ETH01Transfer;
 using hal::serial::SerialPort;
 using hal::serial::SerialPortStatus;
 using hal::general::GeneralPin;
@@ -37,6 +38,7 @@ using mcuf::io::Future;
 using mcuf::io::RingBuffer;
 using mcuf::net::MediaAccessControlAddress;
 using mcuf::net::SocketAddress;
+using mcuf::net::InternetProtocolAddress;
 
 
 
@@ -57,10 +59,12 @@ mSerialPort(serialPort),
 mEnablePin(enablePin),
 mSerialPortInputStream(serialPort),
 mSerialPortOutputStream(serialPort),
-mReceiver(mSerialPortInputStream, *this){
+mReceiver(mSerialPortInputStream, *this),
+mTransfer(mSerialPortOutputStream, *this),
+mRemoteAddress(){
   
+  this->mIp = 0;
   this->mConnectStatus = ConnectStatus::NO_CONNECT;
-  this->mReceiverStatus = ReceiverStatus::WAIT_EMABLE;
   this->mStatus = Status::NOT_INIT;
   return;
 }
@@ -92,6 +96,9 @@ WT32ETH01::~WT32ETH01(void){
  * @return int 
  */
 int WT32ETH01::avariable(void){
+  if(this->mStatus != Status::TRANSFER)
+    return 0;
+  
   return this->mReceiver.avariable();
 }
 
@@ -102,6 +109,9 @@ int WT32ETH01::avariable(void){
  * @return false 
  */
 bool WT32ETH01::abortRead(void){
+  if(this->mStatus != Status::TRANSFER)
+    return false;  
+  
   return this->mReceiver.abortRead();
 }
 
@@ -112,7 +122,42 @@ bool WT32ETH01::abortRead(void){
  * @return false isn't busy.
  */
 bool WT32ETH01::readBusy(void){
+  if(this->mStatus != Status::TRANSFER)
+    return false;
+  
   return this->mReceiver.readBusy();
+}
+
+/**
+ * @brief pop buffer byte non blocking.
+ * 
+ * @param result 
+ * @return true has data in buffer.
+ * @return false no data in buffer.
+ */
+bool WT32ETH01::getByte(char& result){
+  return this->mReceiver.getByte(result);
+}
+
+/**
+ * @brief 
+ * 
+ * @param byteBuffer 
+ * @return int 
+ */
+int WT32ETH01::get(mcuf::io::ByteBuffer& byteBuffer){
+  return this->mReceiver.get(byteBuffer);
+}
+
+/**
+ * @brief 
+ * 
+ * @param buffer 
+ * @param bufferSize 
+ * @return int 
+ */
+int WT32ETH01::get(void* buffer, int bufferSize){
+  return this->mReceiver.get(buffer, bufferSize);
 }
 
 /**
@@ -184,7 +229,10 @@ bool WT32ETH01::skip(int value, Future& future){
  * @return false 
  */
 bool WT32ETH01::abortWrite(void){
-  return false;
+  if(this->mStatus != Status::TRANSFER)
+    return false;
+  
+  return this->mTransfer.abortWrite();
 }
 
 /**
@@ -194,7 +242,10 @@ bool WT32ETH01::abortWrite(void){
  * @return false isn't busy.
  */
 bool WT32ETH01::writeBusy(void){
-  return false;
+  if(this->mStatus != Status::TRANSFER)
+    return true;
+  
+  return this->mTransfer.writeBusy();
 }
 /**
  * @brief 
@@ -206,7 +257,10 @@ bool WT32ETH01::writeBusy(void){
  * @return false fail.
  */
 bool WT32ETH01::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
-  return false;
+  if(this->mStatus != Status::TRANSFER)
+    return false;
+  
+  return this->mTransfer.write(byteBuffer, attachment, handler);
 }
 
 /**
@@ -218,16 +272,10 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandle
  * @return false 
  */
 bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
-  if(!future.isIdle())
+  if(this->mStatus != Status::TRANSFER)
     return false;
   
-  future.setWait();
-  bool result = this->write(byteBuffer, nullptr, &future);
-  
-  if(!result)
-    future.clear();
-  
-  return result; 
+  return this->mTransfer.write(byteBuffer, future);
 }
 
 /* ****************************************************************************************
@@ -259,6 +307,28 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
       break;
     case WT32ETH01Receiver::Event::SEND_OK:
       mcuf::lang::System::out().print("SEND_OK\n");
+      break;
+  }
+
+}
+
+/* ****************************************************************************************
+ * Public Method <Override> - hal::serial::SerialPortEvent
+ */
+
+/**
+ * @brief 
+ * 
+ * @param t 
+ */
+void WT32ETH01::accept(WT32ETH01Transfer::Event t){
+  
+  switch(t){
+    case WT32ETH01Transfer::Event::WRITE_SUCCESSFUL:
+      mcuf::lang::System::out().print("WRITE_SUCCESSFUL\n");
+      break;
+    case WT32ETH01Transfer::Event::WRITE_FAIL:
+      mcuf::lang::System::out().print("WRITE_FAIL\n");
       break;
   }
 
@@ -303,7 +373,22 @@ bool WT32ETH01::init(void){
   
   this->mSerialPort.clear();
   this->mReceiver.start();
+  this->mTransfer.start();
   this->mEnablePin.setHigh();
+  
+  this->delay(1000);
+  
+  this->mTransfer.setNonAck();
+  this->delay(1000);
+  uint8_t ip[4] = {192, 168, 11, 169};
+  uint8_t gateway[4] = {192, 168, 11, 254};
+  uint8_t mask[4] = {255, 255, 255, 0};
+  this->mTransfer.setStaticAddress(ip, gateway, mask);
+  this->delay(1000);
+  this->mTransfer.getAddress();
+  this->delay(1000);
+  this->mTransfer.setConnect(WT32ETH01Transfer::ConnectType::TCP_SERVER, ip, 1234, 6789);
+  this->delay(1000);
   
   return true;
 }
@@ -390,6 +475,8 @@ bool WT32ETH01::reset(void){
  * @return false 
  */
 bool WT32ETH01::connect(ConnectType type, const SocketAddress& remoteAddress, Future& future){
+  if(this->mStatus != Status::INITD)
+    return false;
   return false;
 }
 
@@ -404,7 +491,41 @@ bool WT32ETH01::connect(ConnectType type, const SocketAddress& remoteAddress, Fu
  * @return false 
  */
 bool WT32ETH01::listen(ConnectType type, const SocketAddress& remoteAddress, uint16_t destPort, Future& future){
+  if(this->mStatus != Status::INITD)
+    return false;
   return false;
+}
+
+/**
+ * @brief Set the Static I P Address object
+ * 
+ * @param ip 
+ * @param gateway 
+ * @param mask 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::setStaticIPAddress(const InternetProtocolAddress& ip,
+                                   const InternetProtocolAddress& gateway,
+                                   const InternetProtocolAddress& mask){
+                                     
+  this->mIp = ip.getAddress();
+  this->mGateway = gateway.getAddress();
+  this->mMask = mask.getAddress();
+  return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::setDHCP(void){
+  this->mIp = 0;
+  this->mGateway = 0;
+  this->mMask = 0;
+  return true;
 }
 
 /**
@@ -414,23 +535,12 @@ bool WT32ETH01::listen(ConnectType type, const SocketAddress& remoteAddress, uin
  * @return false 
  */
 bool WT32ETH01::updateStatus(void){
-  Future future = Future();
-  bool result;
-  result = this->updateStatus(future);
-  future.waitDone();
-  return result;
+  if(this->mStatus != Status::INITD)
+    return false;
+  
+  return this->mTransfer.getAddress();
 }
 
-/**
- * @brief 
- * 
- * @param future 
- * @return true 
- * @return false 
- */
-bool WT32ETH01::updateStatus(mcuf::io::Future& future){
-  return false;
-}
 
 /* ****************************************************************************************
  * Protected Method <Static>
