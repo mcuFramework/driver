@@ -290,28 +290,34 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
   
   switch(t){
     case WT32ETH01Receiver::Event::MODULE_OK:
+      //System::out().println("r_event:MODULE_OK\n");
       this->mStatus = Status::WAIT_INIT;
       this->mTransfer.setNonAck();
       break;
     
     case WT32ETH01Receiver::Event::OK:
+      //System::out().println("r_event:OK\n");
       this->eventOk();
       break;
     
     case WT32ETH01Receiver::Event::ERROR:
+      //System::out().println("r_event:ERROR\n");
       this->reset();
       break;
     
     case WT32ETH01Receiver::Event::NO_IP:
+      //System::out().println("r_event:NO_IP\n");
       this->mStatus = Status::INITD;
       this->executeHandle(false);
       break;
     
     case WT32ETH01Receiver::Event::ON_SEND:
+      //System::out().println("r_event:ON_SEND\n");
       this->mTransfer.setOnSendFlag();
       break;
     
     case WT32ETH01Receiver::Event::SEND_OK:
+      //System::out().println("r_event:SEND_OK\n");
       this->mTransfer.setSendOkFlag();
       break;
   }
@@ -330,8 +336,10 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
 void WT32ETH01::accept(WT32ETH01Transfer::Event t){
   switch(t){
     case WT32ETH01Transfer::Event::WRITE_SUCCESSFUL:
+      //System::out().println("t_event:WRITE_SUCCESSFUL\n");
       break;
     case WT32ETH01Transfer::Event::WRITE_FAIL:
+      //System::out().println("t_event:WRITE_FAIL\n");
       this->reset();
       break;
   }

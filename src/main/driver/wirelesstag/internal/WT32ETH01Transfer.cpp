@@ -395,6 +395,7 @@ bool WT32ETH01Transfer::setSendOkFlag(void){
   if(this->mStatus != Status::WAIT_SEND_OK_FLAG)
     return false;
   
+  this->mStatus = Status::IDLE;
   this->executeHandler(true);
   
   return true;
@@ -461,7 +462,7 @@ bool WT32ETH01Transfer::setSendLen(void){
  * @return false 
  */
 bool WT32ETH01Transfer::directWrite(ByteBuffer* byteBuffer){
-  bool result = this->mOutputStream.write(*this, this, this);
+  bool result = this->mOutputStream.write(*byteBuffer, this, this);
   
   if(result == false){
     this->mStatus = Status::IDLE;
