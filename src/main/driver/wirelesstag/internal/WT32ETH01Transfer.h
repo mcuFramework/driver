@@ -95,7 +95,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
     mcuf::function::Consumer<Event>& mEvent;
     void* mAttachment;
     mcuf::io::CompletionHandler<int, void*>* mHandler;
-    ByteBuffer* mByteBuffer;
+    mcuf::io::OutputBuffer* mByteBuffer;
     uint8_t mBuffer[128];
     Status mStatus;
 
@@ -160,9 +160,9 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return true successful.
      * @return false fail.
      */
-    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, 
-                      void* attachment,
-                      mcuf::io::CompletionHandler<int, void*>* handler) override;
+    virtual bool write(mcuf::io::OutputBuffer& byteBuffer, 
+                       void* attachment,
+                       mcuf::io::CompletionHandler<int, void*>* handler) override;
 
     /**
      * @brief 
@@ -172,7 +172,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return true 
      * @return false 
      */
-    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
+    virtual bool write(mcuf::io::OutputBuffer& byteBuffer, mcuf::io::Future& future) override;
 
   /* **************************************************************************************
    * Public Method <Override> - mcuf::io::CompletionHandler<int ,void*>
@@ -330,7 +330,7 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
      * @return true 
      * @return false 
      */
-    bool directWrite(mcuf::io::ByteBuffer* byteBuffer);
+    bool directWrite(mcuf::io::OutputBuffer* byteBuffer);
    
 };
 

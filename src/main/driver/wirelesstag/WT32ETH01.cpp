@@ -30,7 +30,6 @@ using driver::wirelesstag::WT32ETH01;
 using driver::wirelesstag::internal::WT32ETH01Receiver;
 using driver::wirelesstag::internal::WT32ETH01Transfer;
 using hal::serial::SerialPort;
-using hal::serial::SerialPortStatus;
 using hal::general::GeneralPin;
 using mcuf::io::ByteBuffer;
 using mcuf::io::CompletionHandler;
@@ -57,10 +56,8 @@ using mcuf::net::InternetProtocolAddress;
 WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin) : 
 mSerialPort(serialPort),
 mEnablePin(enablePin),
-mSerialPortInputStream(serialPort),
-mSerialPortOutputStream(serialPort),
-mReceiver(mSerialPortInputStream, *this),
-mTransfer(mSerialPortOutputStream, *this),
+mReceiver(serialPort, *this),
+mTransfer(serialPort, *this),
 mRemoteAddress(){
   
   this->mIp = 0;
@@ -86,7 +83,55 @@ WT32ETH01::~WT32ETH01(void){
  */
 
 /* ****************************************************************************************
- * Public Method <Override> - mcuf::io::InputStream
+ * Public Method <Override> - hal::Base
+ */
+
+/**
+ * @brief uninitialze hardware.
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::deinit(void){
+  if(!this->isInit())
+    return false;
+  
+  this->mSerialPort.deinit();
+  this->mStatus = Status::NOT_INIT;
+  
+  return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::init(void){
+  if(this->isInit())
+    return false;
+  
+  this->mEnablePin.setOutput();
+  this->mSerialPort.init();
+  this->mSerialPort.baudrate(115200);  
+  
+  this->reset();
+  return true;
+}
+
+/**
+ * @brief get hardware initialzed status.
+ * 
+ * @return true not init
+ * @return false initd
+ */
+bool WT32ETH01::isInit(void){
+  return (this->mStatus != Status::NOT_INIT);
+}
+
+/* ****************************************************************************************
+ * Public Method <Override> - mcuf::io::OutputBuffer
  */
 
 /**
@@ -94,12 +139,58 @@ WT32ETH01::~WT32ETH01(void){
  * 
  * @return int 
  */
-int WT32ETH01::avariable(void){
+int WT32ETH01::avariable(void) const{
   if(this->mStatus != Status::TRANSFER)
     return 0;
   
   return this->mReceiver.avariable();
 }
+
+/**
+ * @brief pop buffer byte non blocking.
+ * 
+ * @param result 
+ * @return true has data in buffer.
+ * @return false no data in buffer.
+ */
+bool WT32ETH01::getByte(char& result){
+  return this->mReceiver.getByte(result);
+}
+
+/**
+ * @brief 
+ * 
+ * @param byteBuffer 
+ * @return int 
+ */
+int WT32ETH01::get(mcuf::io::InputBuffer& byteBuffer){
+  return this->mReceiver.get(byteBuffer);
+}
+
+/**
+ * @brief 
+ * 
+ * @param buffer 
+ * @param bufferSize 
+ * @return int 
+ */
+int WT32ETH01::get(void* buffer, int bufferSize){
+  return this->mReceiver.get(buffer, bufferSize);
+}
+
+/**
+ * @brief 
+ * 
+ * @param value 
+ * @return int 
+ */
+int WT32ETH01::skip(int value){
+  return this->mReceiver.skip(value);
+}
+
+/* ****************************************************************************************
+ * Public Method <Override> - mcuf::io::InputStream
+ */
 
 /**
  * @brief 
@@ -128,44 +219,12 @@ bool WT32ETH01::readBusy(void){
 }
 
 /**
- * @brief pop buffer byte non blocking.
- * 
- * @param result 
- * @return true has data in buffer.
- * @return false no data in buffer.
- */
-bool WT32ETH01::getByte(char& result){
-  return this->mReceiver.getByte(result);
-}
-
-/**
  * @brief 
  * 
  * @param byteBuffer 
  * @return int 
  */
-int WT32ETH01::get(mcuf::io::ByteBuffer& byteBuffer){
-  return this->mReceiver.get(byteBuffer);
-}
-
-/**
- * @brief 
- * 
- * @param buffer 
- * @param bufferSize 
- * @return int 
- */
-int WT32ETH01::get(void* buffer, int bufferSize){
-  return this->mReceiver.get(buffer, bufferSize);
-}
-
-/**
- * @brief 
- * 
- * @param byteBuffer 
- * @return int 
- */
-bool WT32ETH01::read(mcuf::io::ByteBuffer& byteBuffer){
+bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer){
   return this->mReceiver.read(byteBuffer);
 }   
 
@@ -178,7 +237,7 @@ bool WT32ETH01::read(mcuf::io::ByteBuffer& byteBuffer){
  * @return true successful.
  * @return false fail.
  */
-bool WT32ETH01::read(ByteBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
   return this->mReceiver.read(byteBuffer, attachment, handler);
 }
 
@@ -190,7 +249,7 @@ bool WT32ETH01::read(ByteBuffer& byteBuffer, void* attachment, CompletionHandler
  * @return true 
  * @return false 
  */
-bool WT32ETH01::read(ByteBuffer& byteBuffer, Future& future){
+bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer, Future& future){
   return this->mReceiver.read(byteBuffer, future);
 }
 /**
@@ -255,7 +314,7 @@ bool WT32ETH01::writeBusy(void){
  * @return true successful.
  * @return false fail.
  */
-bool WT32ETH01::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+bool WT32ETH01::write(mcuf::io::OutputBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
   if(this->mStatus != Status::TRANSFER)
     return false;
   
@@ -270,7 +329,7 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandle
  * @return true 
  * @return false 
  */
-bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
+bool WT32ETH01::write(mcuf::io::OutputBuffer& byteBuffer, Future& future){
   if(this->mStatus != Status::TRANSFER)
     return false;
   
@@ -278,7 +337,7 @@ bool WT32ETH01::write(ByteBuffer& byteBuffer, Future& future){
 }
 
 /* ****************************************************************************************
- * Public Method <Override> - hal::serial::SerialPortEvent
+ * Public Method <Override> - mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>
  */
 
 /**
@@ -325,7 +384,7 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
 }
 
 /* ****************************************************************************************
- * Public Method <Override> - hal::serial::SerialPortEvent
+ * Public Method <Override> - mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>
  */
 
 /**
@@ -343,54 +402,6 @@ void WT32ETH01::accept(WT32ETH01Transfer::Event t){
       this->reset();
       break;
   }
-}
-
-/* ****************************************************************************************
- * Public Method <Override> - hal::Base
- */
-
-/**
- * @brief uninitialze hardware.
- * 
- * @return true 
- * @return false 
- */
-bool WT32ETH01::deinit(void){
-  if(!this->isInit())
-    return false;
-  
-  this->mSerialPort.deinit();
-  this->mStatus = Status::NOT_INIT;
-  
-  return true;
-}
-
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
-bool WT32ETH01::init(void){
-  if(this->isInit())
-    return false;
-  
-  this->mEnablePin.setOutput();
-  this->mSerialPort.init();
-  this->mSerialPort.baudrate(115200);  
-  
-  this->reset();
-  return true;
-}
-
-/**
- * @brief get hardware initialzed status.
- * 
- * @return true not init
- * @return false initd
- */
-bool WT32ETH01::isInit(void){
-  return (this->mStatus != Status::NOT_INIT);
 }
 
 /* ****************************************************************************************
@@ -466,7 +477,7 @@ bool WT32ETH01::disconnect(void){
 bool WT32ETH01::reset(void){
   this->mStatus = Status::WAIT_INIT;
   this->mEnablePin.setLow();
-  this->mSerialPort.clear();
+  this->mSerialPort.skip(this->mSerialPort.avariable());
   this->mReceiver.start();
   this->mTransfer.start();
   this->delay(1);

@@ -30,7 +30,7 @@ namespace driver::wirelesstag{
  * Class/Interface/Struct/Enum
  */  
 class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
-  public mcuf::io::InputStream,
+  public mcuf::io::InputStreamBuffer,
   public mcuf::io::OutputStream,
   public hal::Base,
   private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>,
@@ -89,8 +89,6 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
   private:
     hal::serial::SerialPort& mSerialPort;
     hal::general::GeneralPin& mEnablePin;
-    mcuf::io::SerialPortInputStream mSerialPortInputStream;
-    mcuf::io::SerialPortOutputStream mSerialPortOutputStream;
     driver::wirelesstag::internal::WT32ETH01Receiver mReceiver;
     driver::wirelesstag::internal::WT32ETH01Transfer mTransfer;
     mcuf::net::SocketAddress mRemoteAddress;
@@ -166,7 +164,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     virtual bool isInit(void) override;
 
   /* **************************************************************************************
-   * Public Method <Override> - mcuf::io::InputStream
+   * Public Method <Override> - mcuf::io::OutputBuffer
    */
   public:
     /**
@@ -174,8 +172,46 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * 
      * @return int 
      */
-    virtual int avariable(void) override;
+    virtual int avariable(void) const override;
+  
+    /**
+     * @brief pop buffer byte non blocking.
+     * 
+     * @param result 
+     * @return true has data in buffer.
+     * @return false no data in buffer.
+     */
+    virtual bool getByte(char& result) override;
+
+    /**
+     * @brief 
+     * 
+     * @param byteBuffer 
+     * @return int 
+     */
+    virtual int get(mcuf::io::InputBuffer& inputBuffer) override;
+
+    /**
+     * @brief 
+     * 
+     * @param buffer 
+     * @param bufferSize 
+     * @return int 
+     */
+    virtual int get(void* buffer, int bufferSize) override;        
     
+    /**
+     * @brief 
+     * 
+     * @param value 
+     * @return int 
+     */
+    virtual int skip(int value) override;
+  
+  /* **************************************************************************************
+   * Public Method <Override> - mcuf::io::InputStream
+   */
+  public:
     /**
      * @brief 
      * 
@@ -193,38 +229,12 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     virtual bool readBusy(void) override;
     
     /**
-     * @brief pop buffer byte non blocking.
-     * 
-     * @param result 
-     * @return true has data in buffer.
-     * @return false no data in buffer.
-     */
-    virtual bool getByte(char& result) override;
-
-    /**
      * @brief 
      * 
      * @param byteBuffer 
      * @return int 
      */
-    virtual int get(mcuf::io::ByteBuffer& byteBuffer) override;
-
-    /**
-     * @brief 
-     * 
-     * @param buffer 
-     * @param bufferSize 
-     * @return int 
-     */
-    virtual int get(void* buffer, int bufferSize) override;    
-    
-    /**
-     * @brief 
-     * 
-     * @param byteBuffer 
-     * @return int 
-     */
-    virtual bool read(mcuf::io::ByteBuffer& byteBuffer) override;    
+    virtual bool read(mcuf::io::InputBuffer& byteBuffer) override;    
     
     /**
      * @brief nonblocking
@@ -235,7 +245,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return true successful.
      * @return false fail.
      */
-    virtual bool read(mcuf::io::ByteBuffer& byteBuffer, 
+    virtual bool read(mcuf::io::InputBuffer& byteBuffer, 
                       void* attachment,
                       mcuf::io::CompletionHandler<int, void*>* handler) override;
 
@@ -247,7 +257,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return true 
      * @return false 
      */
-    virtual bool read(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
+    virtual bool read(mcuf::io::InputBuffer& byteBuffer, mcuf::io::Future& future) override;
 
     /**
      * @brief 
@@ -301,9 +311,9 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return true successful.
      * @return false fail.
      */
-    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, 
-                      void* attachment,
-                      mcuf::io::CompletionHandler<int, void*>* handler) override;
+    virtual bool write(mcuf::io::OutputBuffer& byteBuffer, 
+                       void* attachment,
+                       mcuf::io::CompletionHandler<int, void*>* handler) override;
 
     /**
      * @brief 
@@ -313,7 +323,7 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return true 
      * @return false 
      */
-    virtual bool write(mcuf::io::ByteBuffer& byteBuffer, mcuf::io::Future& future) override;
+    virtual bool write(mcuf::io::OutputBuffer& byteBuffer, mcuf::io::Future& future) override;
                       
   /* **************************************************************************************
    * Public Method <Override> - mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>

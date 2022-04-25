@@ -116,11 +116,11 @@ bool WT32ETH01Transfer::writeBusy(void){
  * @return true successful.
  * @return false fail.
  */
-bool WT32ETH01Transfer::write(ByteBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+bool WT32ETH01Transfer::write(mcuf::io::OutputBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
   if(this->writeBusy())
     return false;
   
-  if(byteBuffer.hasRemaining() == 0)
+  if(byteBuffer.avariable() == 0)
     return false;
   
   this->mByteBuffer = &byteBuffer;
@@ -146,7 +146,7 @@ bool WT32ETH01Transfer::write(ByteBuffer& byteBuffer, void* attachment, Completi
  * @return true 
  * @return false 
  */
-bool WT32ETH01Transfer::write(ByteBuffer& byteBuffer, Future& future){
+bool WT32ETH01Transfer::write(mcuf::io::OutputBuffer& byteBuffer, Future& future){
   if(!future.classAvariable())
     return false;
   
@@ -234,7 +234,7 @@ void WT32ETH01Transfer::start(void){
  */
 void WT32ETH01Transfer::stop(void){
   this->mOutputStream.abortWrite();
-  this->clear();
+  this->flush();
   this->mStatus = Status::IDLE;
   this->mByteBuffer = nullptr;
 }
@@ -250,7 +250,7 @@ bool WT32ETH01Transfer::setNonAck(void){
     return false;
 
   this->mStatus = Status::WRITE_COMMAND;
-  this->clear();
+  this->flush();
   this->put(WT32ETH01Transfer::TEXT_COMMAND_ATE0);
   this->flip();
   return this->directWrite(this);
@@ -267,7 +267,7 @@ bool WT32ETH01Transfer::getAddress(void){
     return false;
 
   this->mStatus = Status::WRITE_COMMAND;
-  this->clear();
+  this->flush();
   this->put(WT32ETH01Transfer::TEXT_COMMAND_GET_ADDRESS);
   this->flip();
   return this->directWrite(this);
@@ -296,7 +296,7 @@ bool WT32ETH01Transfer::setStaticAddress(const uint8_t* ip, const uint8_t* gatew
   String::format(gatewaya, 16, WT32ETH01Transfer::TEXT_IPADDRESS_FORMAT, gateway[0], gateway[1], gateway[2], gateway[3]);
   String::format(maska, 16, WT32ETH01Transfer::TEXT_IPADDRESS_FORMAT, mask[0], mask[1], mask[2], mask[3]);
   
-  this->clear();
+  this->flush();
   this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_STATIC_IP_FORMAT, ipa, gatewaya, maska);
   this->flip();
   return this->directWrite(this);
@@ -339,7 +339,7 @@ bool WT32ETH01Transfer::setConnect(ConnectType type, const mcuf::net::SocketAddr
 
   char ipa[16];
   String::format(ipa, 16, WT32ETH01Transfer::TEXT_IPADDRESS_FORMAT, ip[0], ip[1], ip[2], ip[3]);
-  this->clear();
+  this->flush();
   
   const char* mode;
   switch(type){
@@ -423,7 +423,7 @@ bool WT32ETH01Transfer::setSendOkFlag(void){
 void WT32ETH01Transfer::executeHandler(bool successful){
   void* attachment = this->mAttachment;
   mcuf::io::CompletionHandler<int, void*>* handler = this->mHandler;
-  int result = this->mByteBuffer->remaining();
+  int result = this->mByteBuffer->avariable();
   this->mByteBuffer = nullptr;
   
   if(handler != nullptr){
@@ -446,8 +446,8 @@ bool WT32ETH01Transfer::setSendLen(void){
     return false;
   
   this->mStatus = Status::WRITE_USER_DATALEN;
-  this->clear();
-  this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_DATA_SEND_FORMAT, this->mByteBuffer->remaining());
+  this->flush();
+  this->putFormat(WT32ETH01Transfer::TEXT_COMMAND_DATA_SEND_FORMAT, this->mByteBuffer->avariable());
   this->flip();
   
   return this->directWrite(this);
@@ -461,7 +461,7 @@ bool WT32ETH01Transfer::setSendLen(void){
  * @return true 
  * @return false 
  */
-bool WT32ETH01Transfer::directWrite(ByteBuffer* byteBuffer){
+bool WT32ETH01Transfer::directWrite(mcuf::io::OutputBuffer* byteBuffer){
   bool result = this->mOutputStream.write(*byteBuffer, this, this);
   
   if(result == false){

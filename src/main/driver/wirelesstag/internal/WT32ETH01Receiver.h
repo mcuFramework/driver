@@ -86,7 +86,7 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
    * Variable <Private>
    */
   private:
-    mcuf::io::InputStream& mInputStream;
+    mcuf::io::InputStreamBuffer& mInputStreamBuffer;
     mcuf::io::ByteBuffer mByteBuffer;
     mcuf::function::Consumer<Event>& mEvent;
     
@@ -113,7 +113,7 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
      * @brief Construct a new WT32ETH01Receiver object
      * 
      */
-    WT32ETH01Receiver(mcuf::io::InputStream& inputStream, mcuf::function::Consumer<Event>& event);
+    WT32ETH01Receiver(mcuf::io::InputStreamBuffer& inputStreamBuffer, mcuf::function::Consumer<Event>& event);
 
     /**
      * @brief Destroy the WT32ETH01Receiver object

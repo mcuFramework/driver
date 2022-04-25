@@ -57,13 +57,14 @@ const char* const WT32ETH01Receiver::TEXT_IPD_FORMAT = "+IPD,%d:\0";
  * @brief Construct a new WT32ETH01Receiver object
  * 
  */
-WT32ETH01Receiver::WT32ETH01Receiver(InputStream& inputStream, Consumer<Event>& event) :
+WT32ETH01Receiver::WT32ETH01Receiver(InputStreamBuffer& inputStreamBuffer, Consumer<Event>& event) :
 RingBufferInputStream(Memory(this->mRingBufferMemory, sizeof(this->mRingBufferMemory))),
 mInternetProtocolAddress(),
 mMediaAccessControlAddress(),
-mInputStream(inputStream),
+mInputStreamBuffer(inputStreamBuffer),
 mByteBuffer(Memory(this->mByteBufferMemory, sizeof(this->mByteBufferMemory))),
 mEvent(event){
+  
   this->mWaitLength = 0;
   return;
 }
@@ -167,9 +168,9 @@ void WT32ETH01Receiver::stop(void){
  */
 void WT32ETH01Receiver::beginReadHead(void){ 
   this->mStatus = Status::WAIT_HEAD;
-  this->mByteBuffer.clear();
+  this->mByteBuffer.flush();
   this->mByteBuffer.limit(1);
-  this->mInputStream.read(this->mByteBuffer, this, this);
+  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
   return;
 }
 
@@ -181,7 +182,7 @@ void WT32ETH01Receiver::beginReadHead(void){
  */
 void WT32ETH01Receiver::beginReadNext(void){
   this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-  this->mInputStream.read(this->mByteBuffer, this, this);
+  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
   return;
 }
 
@@ -218,7 +219,7 @@ void WT32ETH01Receiver::beginReadAtLength(uint16_t len){
   }
   
   this->mByteBuffer.limit(this->mByteBuffer.position() + len);
-  this->mInputStream.read(this->mByteBuffer, this, this);
+  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
 }
 
 /**
@@ -259,13 +260,13 @@ void WT32ETH01Receiver::eventWaitChar(void){
   while(true){
     ch = this->mByteBuffer[this->mByteBuffer.position()-1];
     if(ch != this->mWaitChar){
-      if(this->mInputStream.avariable() <= 0){
+      if(this->mInputStreamBuffer.avariable() <= 0){
         this->beginReadNext();
         return;
         
       }else{
         this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-        this->mInputStream.read(this->mByteBuffer);
+        this->mInputStreamBuffer.read(this->mByteBuffer);
       }
 
     }else{
@@ -306,12 +307,12 @@ void WT32ETH01Receiver::eventWaitChar(void){
  */
 void WT32ETH01Receiver::eventWaitLen(void){
   this->mByteBuffer.flip();
-  this->insertMult(this->mByteBuffer.pointer(), this->mByteBuffer.limit());
+  this->put(this->mByteBuffer);
   
   if(this->mWaitLength == 0){
     this->beginReadHead();
   }else{
-    this->mByteBuffer.clear();
+    this->mByteBuffer.flush();
     this->beginReadAtLength(this->mWaitLength);
   }
   
@@ -418,7 +419,7 @@ void WT32ETH01Receiver::eventStreamLength(void){
   int result = String::scanFormat(src, WT32ETH01Receiver::TEXT_IPD_FORMAT, &len);
   
   if(result == 1){
-    this->mByteBuffer.clear();
+    this->mByteBuffer.flush();
     this->beginReadAtLength(len);
     return;
   }

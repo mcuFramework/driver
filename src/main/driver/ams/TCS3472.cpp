@@ -126,10 +126,10 @@ bool TCS3472::read(void){
   
   this->mBusy = true;
   
-  this->mByteBufferTransfer.clear();
+  this->mByteBufferTransfer.flush();
   this->mByteBufferTransfer.putByte(this->getCommand(Address::ADDR_ENABLE));
   this->mByteBufferTransfer.flip();
-  this->mByteBufferReceiver.clear();
+  this->mByteBufferReceiver.flush();
   
   if(this->mSerailBus.writeAfterRead(this->mAddress, this->mByteBufferTransfer, this->mByteBufferReceiver, this, this))
     return true;
@@ -152,7 +152,7 @@ bool TCS3472::writeRegister(Address addr, uint8_t data){
   
   this->mBusy = true;
 
-  this->mByteBufferTransfer.clear();
+  this->mByteBufferTransfer.flush();
   this->mByteBufferTransfer.putByte(this->getCommand(addr));
   this->mByteBufferTransfer.putByte(data);
   this->mByteBufferTransfer.flip();
