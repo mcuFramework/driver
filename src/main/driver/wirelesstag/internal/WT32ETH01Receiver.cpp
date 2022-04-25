@@ -266,7 +266,7 @@ void WT32ETH01Receiver::eventWaitChar(void){
         
       }else{
         this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-        this->mInputStreamBuffer.read(this->mByteBuffer);
+        this->mInputStreamBuffer.get(this->mByteBuffer);
       }
 
     }else{

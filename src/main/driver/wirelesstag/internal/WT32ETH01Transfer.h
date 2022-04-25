@@ -154,6 +154,16 @@ class driver::wirelesstag::internal::WT32ETH01Transfer extends mcuf::io::ByteBuf
     /**
      * @brief 
      * 
+     * @param outputBuffer
+     * @param future 
+     * @return true 
+     * @return false 
+     */
+    virtual bool write(mcuf::io::OutputBuffer& outputBuffer, int timeout) override;    
+  
+    /**
+     * @brief 
+     * 
      * @param byteBuffer 
      * @param attachment 
      * @param handler 

@@ -231,10 +231,11 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     /**
      * @brief 
      * 
-     * @param byteBuffer 
+     * @param inputBuffer 
+     * @param timeout
      * @return int 
      */
-    virtual bool read(mcuf::io::InputBuffer& byteBuffer) override;    
+    virtual bool read(mcuf::io::InputBuffer& inputBuffer, int timeout) override;    
     
     /**
      * @brief nonblocking
@@ -302,6 +303,17 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      */
     virtual bool writeBusy(void) override;
 
+    
+    /**
+     * @brief 
+     * 
+     * @param outputBuffer
+     * @param future 
+     * @return true 
+     * @return false 
+     */
+    virtual bool write(mcuf::io::OutputBuffer& outputBuffer, int timeout) override;  
+  
     /**
      * @brief 
      * 

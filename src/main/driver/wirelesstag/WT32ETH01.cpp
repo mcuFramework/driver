@@ -221,36 +221,37 @@ bool WT32ETH01::readBusy(void){
 /**
  * @brief 
  * 
- * @param byteBuffer 
+ * @param inputBuffer 
+ * @param timeout 
  * @return int 
  */
-bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer){
-  return this->mReceiver.read(byteBuffer);
+bool WT32ETH01::read(mcuf::io::InputBuffer& inputBuffer, int timeout){
+  return this->mReceiver.read(inputBuffer, timeout);
 }   
 
 /**
  * @brief nonblocking
  * 
- * @param byteBuffer 
+ * @param inputBuffer 
  * @param attachment 
  * @param handler 
  * @return true successful.
  * @return false fail.
  */
-bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
-  return this->mReceiver.read(byteBuffer, attachment, handler);
+bool WT32ETH01::read(mcuf::io::InputBuffer& inputBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+  return this->mReceiver.read(inputBuffer, attachment, handler);
 }
 
 /**
  * @brief 
  * 
- * @param byteBuffer 
+ * @param inputBuffer 
  * @param future 
  * @return true 
  * @return false 
  */
-bool WT32ETH01::read(mcuf::io::InputBuffer& byteBuffer, Future& future){
-  return this->mReceiver.read(byteBuffer, future);
+bool WT32ETH01::read(mcuf::io::InputBuffer& inputBuffer, Future& future){
+  return this->mReceiver.read(inputBuffer, future);
 }
 /**
  * @brief 
@@ -305,35 +306,52 @@ bool WT32ETH01::writeBusy(void){
   
   return this->mTransfer.writeBusy();
 }
+
+  
 /**
  * @brief 
  * 
- * @param byteBuffer 
- * @param attachment 
- * @param handler 
- * @return true successful.
- * @return false fail.
+ * @param outputBuffer
+ * @param future 
+ * @return true 
+ * @return false 
  */
-bool WT32ETH01::write(mcuf::io::OutputBuffer& byteBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+bool WT32ETH01::write(mcuf::io::OutputBuffer& outputBuffer, int timeout){
   if(this->mStatus != Status::TRANSFER)
     return false;
   
-  return this->mTransfer.write(byteBuffer, attachment, handler);
+  return this->mTransfer.write(outputBuffer, timeout);
 }
 
 /**
  * @brief 
  * 
- * @param byteBuffer 
+ * @param outputBuffer 
+ * @param attachment 
+ * @param handler 
+ * @return true successful.
+ * @return false fail.
+ */
+bool WT32ETH01::write(mcuf::io::OutputBuffer& outputBuffer, void* attachment, CompletionHandler<int, void*>* handler){
+  if(this->mStatus != Status::TRANSFER)
+    return false;
+  
+  return this->mTransfer.write(outputBuffer, attachment, handler);
+}
+
+/**
+ * @brief 
+ * 
+ * @param outputBuffer 
  * @param future 
  * @return true 
  * @return false 
  */
-bool WT32ETH01::write(mcuf::io::OutputBuffer& byteBuffer, Future& future){
+bool WT32ETH01::write(mcuf::io::OutputBuffer& outputBuffer, Future& future){
   if(this->mStatus != Status::TRANSFER)
     return false;
   
-  return this->mTransfer.write(byteBuffer, future);
+  return this->mTransfer.write(outputBuffer, future);
 }
 
 /* ****************************************************************************************
