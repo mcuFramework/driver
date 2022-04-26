@@ -137,6 +137,16 @@ bool WT32ETH01::isInit(void){
 /**
  * @brief 
  * 
+ * @return true 
+ * @return false 
+ */
+bool WT32ETH01::isEmpty(void) const {
+  return this->mReceiver.isEmpty();
+}
+
+/**
+ * @brief 
+ * 
  * @return int 
  */
 int WT32ETH01::avariable(void) const{

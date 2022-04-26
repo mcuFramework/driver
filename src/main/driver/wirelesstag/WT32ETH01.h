@@ -170,6 +170,14 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     /**
      * @brief 
      * 
+     * @return true 
+     * @return false 
+     */
+    virtual bool isEmpty(void) const override;
+  
+    /**
+     * @brief 
+     * 
      * @return int 
      */
     virtual int avariable(void) const override;
