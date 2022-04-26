@@ -131,7 +131,7 @@ bool TCS3472::read(void){
   this->mByteBufferTransfer.flip();
   this->mByteBufferReceiver.flush();
   
-  if(this->mSerailBus.writeAfterRead(this->mAddress, this->mByteBufferTransfer, this->mByteBufferReceiver, this, this))
+  if(this->mSerailBus.transfer(this->mAddress, this->mByteBufferTransfer, this->mByteBufferReceiver, this, this))
     return true;
   
   this->mBusy = false;
