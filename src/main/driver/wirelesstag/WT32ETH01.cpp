@@ -675,9 +675,6 @@ void WT32ETH01::executeHandle(bool successful){
   if(future == nullptr)
     return;
 
-  if(future->classAvariable() == false)
-    return;
-
   if(successful)
     future->completed(0, nullptr);
   

@@ -168,9 +168,6 @@ bool WT32ETH01Transfer::write(mcuf::io::OutputBuffer& byteBuffer, void* attachme
  * @return false 
  */
 bool WT32ETH01Transfer::write(mcuf::io::OutputBuffer& byteBuffer, Future& future){
-  if(!future.classAvariable())
-    return false;
-  
   if(!future.isIdle())
     return false;
   
