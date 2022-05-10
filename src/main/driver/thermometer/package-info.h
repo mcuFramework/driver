@@ -4,22 +4,20 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_A984E56A_EA25_4DF8_90D7_72FA6420646D
-#define DRIVER_A984E56A_EA25_4DF8_90D7_72FA6420646D
+#ifndef DRIVER_D58D3AF9_4294_49B2_846E_9073A06EAF85
+#define DRIVER_D58D3AF9_4294_49B2_846E_9073A06EAF85
 
 /* ****************************************************************************************
  * Include folder
  */
-#include "ams/package-info.h"
-#include "thermometer/package-info.h"
-#include "wirelesstag/package-info.h"
 
 /* ****************************************************************************************
  * Include
  */
+#include "Thermistor.h"
 
 /* ****************************************************************************************
  * End of file
  */
 
-#endif /* DRIVER_A984E56A_EA25_4DF8_90D7_72FA6420646D */
+#endif /* DRIVER_D58D3AF9_4294_49B2_846E_9073A06EAF85 */

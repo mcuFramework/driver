@@ -421,6 +421,26 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>main\driver\thermometer</GroupName>
+          <Files>
+            <File>
+              <FileName>package-info.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\thermometer\package-info.h</FilePath>
+            </File>
+            <File>
+              <FileName>Thermistor.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main\driver\thermometer\Thermistor.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Thermistor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\thermometer\Thermistor.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>main\driver\wirelesstag</GroupName>
           <Files>
             <File>
