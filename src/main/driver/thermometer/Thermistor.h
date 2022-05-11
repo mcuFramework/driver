@@ -29,7 +29,8 @@ namespace driver{
 /* ****************************************************************************************
  * Class/Interface/Struct/Enum
  */  
-class driver::thermometer::Thermistor{
+class driver::thermometer::Thermistor extends mcuf::lang::Object implements
+public mcuf::util::TemperatureSensor{
 
   /* **************************************************************************************
    * Variable <Public>
@@ -74,7 +75,7 @@ class driver::thermometer::Thermistor{
      * @brief Destroy the Thermistor object
      * 
      */
-    virtual ~Thermistor(void);
+    virtual ~Thermistor(void) override;
 
   /* **************************************************************************************
    * Operator Method
@@ -85,11 +86,7 @@ class driver::thermometer::Thermistor{
    */
 
   /* **************************************************************************************
-   * Public Method <Override>
-   */
-
-  /* **************************************************************************************
-   * Public Method
+   * Public Method <Override> - mcuf::util::TemperatureSensor
    */
   public:
     /**
@@ -97,7 +94,12 @@ class driver::thermometer::Thermistor{
      * 
      * @return float 
      */
-    float getCelsius(void);
+    virtual float getCelsius(void) override;
+  
+  /* **************************************************************************************
+   * Public Method
+   */
+  public:
 
     /**
      * @brief 
