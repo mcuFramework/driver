@@ -12,6 +12,7 @@
  */  
 
 //-----------------------------------------------------------------------------------------
+#include "mcuf.h"
 
 //-----------------------------------------------------------------------------------------
 
@@ -41,6 +42,12 @@ class driver::thermometer::Thermistor{
   /* **************************************************************************************
    * Variable <Private>
    */
+  private:
+    mcuf::util::Voltmeter& mVoltmeter;
+    int mBeta;
+    float mResistanceSensor;
+    float mResistanceThermistor;
+    float mVoltagePower;
 
   /* **************************************************************************************
    * Abstract method <Public>
@@ -54,9 +61,20 @@ class driver::thermometer::Thermistor{
    * Construct Method
    */
   public: 
-	Thermistor(void) = default;
+    
+    /**
+     * @brief Construct a new Thermistor object
+     * 
+     * @param voltmeter 
+     * @param voltagePower 
+     */
+    Thermistor(mcuf::util::Voltmeter& voltmeter, float voltagePower);
 
-	virtual ~Thermistor(void) = default;
+    /**
+     * @brief Destroy the Thermistor object
+     * 
+     */
+    virtual ~Thermistor(void);
 
   /* **************************************************************************************
    * Operator Method
@@ -73,6 +91,69 @@ class driver::thermometer::Thermistor{
   /* **************************************************************************************
    * Public Method
    */
+  public:
+    /**
+     * @brief Get the Celsius object
+     * 
+     * @return float 
+     */
+    float getCelsius(void);
+
+    /**
+     * @brief 
+     * 
+     * @return int 
+     */
+    int beta(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     */
+    void beta(int value);
+
+    /**
+     * @brief 
+     * 
+     * @return float 
+     */
+    float resistanceSensor(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     */
+    void resistanceSensor(float value);
+
+    /**
+     * @brief 
+     * 
+     * @return float 
+     */
+    float resistanceThermistor(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     */
+    void resistanceThermistor(float value);
+
+    /**
+     * @brief 
+     * 
+     * @return float 
+     */
+    float voltagePower(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     */
+    void voltagePower(float value);
 
   /* **************************************************************************************
    * Protected Method <Static>
