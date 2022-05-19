@@ -4,8 +4,8 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef DRIVER_24F76255_C2F6_4840_9A2D_5EDEC9D147D3
-#define DRIVER_24F76255_C2F6_4840_9A2D_5EDEC9D147D3
+#ifndef DRIVER_B0500BD4_003A_4E4C_AAC4_8F82A827CECA
+#define DRIVER_B0500BD4_003A_4E4C_AAC4_8F82A827CECA
 
 /* ****************************************************************************************
  * Include
@@ -16,88 +16,68 @@
 
 //-----------------------------------------------------------------------------------------
 
+
 /* ****************************************************************************************
  * Namespace
  */  
-namespace driver::ams{
-  class TCS3472;
+namespace driver{
+  namespace microchip{
+    class MCP3421;
+  }
 }
 
 
 /* ****************************************************************************************
  * Class/Interface/Struct/Enum
  */  
-class driver::ams::TCS3472 extends mcuf::lang::Object implements
+class driver::microchip::MCP3421 extends mcuf::lang::Object implements
+public hal::analog::AnalogInputPin,
 public hal::serial::SerialBusEvent{
 
   /* **************************************************************************************
-   * Enum Type
-   */  
+   * Enum Resolution
+   */
   public:
-    enum struct Type : char{
-      TCS34725,
-      TCS34727
-    };
-    
-  /* **************************************************************************************
-   * Enum Address
-   */    
-  public:
-    enum struct Address : char{
-      ADDR_ENABLE  = 0x00,
-      ADDR_ATIME   = 0x01,
-      ADDR_WTIME   = 0x03,
-      ADDR_AILTL   = 0x04,
-      ADDR_AILTH   = 0x05,
-      ADDR_AIHTL   = 0x06,
-      ADDR_AIHTH   = 0x07,
-      ADDR_PERS    = 0x0C,
-      ADDR_CONFIG  = 0x0D,
-      ADDR_CONTROL = 0x0F,
-      ADDR_ID      = 0x12,
-      ADDR_STATUS  = 0x13,
-      ADDR_CDATAL  = 0x14,
-      ADDR_CDATAH  = 0x15,
-      ADDR_RDATAL  = 0x16,
-      ADDR_RDATAH  = 0x17,
-      ADDR_GDATAL  = 0x18,
-      ADDR_GDATAH  = 0x19,
-      ADDR_BDATAL  = 0x1A,
-      ADDR_BDATAH  = 0x1B
+    enum struct Resolution : uint8_t{
+      BIT_12 = 0,
+      BIT_14 = 1,
+      BIT_16 = 2,
+      BIT_18 = 3
     };
 
   /* **************************************************************************************
-   * Struct Register
-   */      
-    
+   * Enum Gain
+   */
   public:
-    struct Register{
-      uint8_t ENABLE;       //0x00
-      uint8_t ATIME;        //0x01
-      uint8_t reserved0;    //0x02
-      uint8_t WTIME;        //0x03
-      uint16_t AILT;        //0x04-0x05
-      uint16_t AIHT;        //0x06-0x07
-      uint8_t reserved1[4]; //0x08-0x0B
-      uint8_t PERS;         //0x0C
-      uint8_t CONFIG;       //0x0D
-      uint8_t reserved2;    //0x0E
-      uint8_t CONTROL;      //0x0F
-      uint8_t reserved3[2]; //0x10-0x11
-      uint8_t ID;           //0x12
-      uint8_t STATUS;       //0x13
-      uint16_t CLEAR;       //0x14-0x15
-      uint16_t RED;         //0x16-0x17
-      uint16_t GREEN;       //0x18-0x19
-      uint16_t BLUE;        //0x1A-0x1B
+    enum struct Gain : uint8_t{
+      GAIN_1 = 0,
+      GAIN_2 = 1,
+      GAIN_4 = 2,
+      GAIN_8 = 3
     };
-    
+
+  /* **************************************************************************************
+   * Enum ConversionMode
+   */
+  public:
+    enum struct ConversionMode : uint8_t{
+      ONE_SHOT_MODE   = 0,
+      CONTINUOUS_MODE = 1
+    };
+
+  /* **************************************************************************************
+   * Enum Status
+   */
+  public:
+    enum struct Status : uint8_t{
+      READY   = 0,
+      CONVERT = 1
+    };
+
   /* **************************************************************************************
    * Variable <Public>
    */
-  public:
-    Register mRegister;
-    
+
   /* **************************************************************************************
    * Variable <Protected>
    */
@@ -106,12 +86,13 @@ public hal::serial::SerialBusEvent{
    * Variable <Private>
    */
   private:
-    hal::serial::SerialBus& mSerailBus;
-    mcuf::io::ByteBuffer mByteBufferTransfer;
-    mcuf::io::ByteBuffer mByteBufferReceiver;
-    uint8_t mWriteBuffer[4];
+    hal::serial::SerialBus& mSerialBus;
+    mcuf::io::ByteBuffer mByteBuffer;
+    uint32_t mResult;
+    uint8_t mBuffer[4];
+    uint8_t mConfig;
     uint8_t mAddress;
-    bool mBusy;
+    uint8_t mBusy;
 
   /* **************************************************************************************
    * Abstract method <Public>
@@ -126,14 +107,17 @@ public hal::serial::SerialBusEvent{
    */
   public: 
     /**
-     *
+     * @brief Construct a new MCP3421 object
+     * 
+     * @param serialBus 
      */
-    TCS3472(Type type, hal::serial::SerialBus& serailBus);
+    MCP3421(hal::serial::SerialBus& serialBus, uint16_t address);
 
     /**
-     *
+     * @brief Destroy the MCP3421 object
+     * 
      */
-    virtual ~TCS3472(void) override;
+    virtual ~MCP3421(void) override;
 
   /* **************************************************************************************
    * Operator Method
@@ -142,6 +126,24 @@ public hal::serial::SerialBusEvent{
   /* **************************************************************************************
    * Public Method <Static>
    */
+
+  /* **************************************************************************************
+   * Public Method <Override> - hal::analog::AnalogInputPin
+   */
+  public:
+    /**
+     * @brief 
+     * 
+     * @return uint32_t 
+     */
+    virtual uint32_t convert(void) override;
+
+    /**
+     * @brief Get the adc convert level.
+     * 
+     * @return uint32_t 
+     */
+    virtual uint32_t getConvertLevel(void) override;
 
   /* **************************************************************************************
    * Public Method <Override> - hal::serial::SerialBusEvent
@@ -162,14 +164,57 @@ public hal::serial::SerialBusEvent{
    * Public Method
    */
   public:
+    /**
+     * @brief 
+     * 
+     * @param value 
+     * @return Resolution 
+     */
+    virtual Resolution resolution(Resolution value);
   
     /**
      * @brief 
      * 
-     * @return true 
-     * @return false 
+     * @return Resolution 
      */
-    bool enable(void);
+    virtual Resolution resolution(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     * @return Gain 
+     */
+    virtual Gain gain(Gain value);
+
+    /**
+     * @brief 
+     * 
+     * @return Gain 
+     */
+    virtual Gain gain(void);
+
+    /**
+     * @brief 
+     * 
+     * @param value 
+     * @return ConversionMode 
+     */
+    virtual ConversionMode conversionMode(ConversionMode value);
+
+    /**
+     * @brief 
+     * 
+     * @return ConversionMode 
+     */
+    virtual ConversionMode conversionMode(void);
+
+    /**
+     * @brief 
+     * 
+     * @return Status 
+     */
+    virtual Status status(void);
 
     /**
      * @brief 
@@ -177,34 +222,31 @@ public hal::serial::SerialBusEvent{
      * @return true 
      * @return false 
      */
-    bool disable(void);
-  
-    /**
-     * @brief Set the Integration Cycle object
-     * 
-     * @param cycle 
-     * @return true 
-     * @return false 
-     */
-    bool setIntegrationCycle(uint8_t cycle);
-  
+    virtual bool update(void);
+    
     /**
      * @brief 
      * 
      * @return true 
      * @return false 
      */
-    bool read(void);
-  
+    virtual bool startConvert(void);
+
     /**
      * @brief 
      * 
-     * @param addr 
-     * @param data 
      * @return true 
      * @return false 
      */
-    bool writeRegister(Address addr, uint8_t data);
+    virtual bool isBusy(void);
+    
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    virtual bool writeOption(void);
 
   /* **************************************************************************************
    * Protected Method <Static>
@@ -229,15 +271,6 @@ public hal::serial::SerialBusEvent{
   /* **************************************************************************************
    * Private Method
    */
-  private:
-
-    /**
-     * @brief Get the Command object
-     * 
-     * @param addr 
-     * @return uint8_t 
-     */
-    uint8_t getCommand(Address addr);
 
 };
 
@@ -245,4 +278,4 @@ public hal::serial::SerialBusEvent{
  * End of file
  */ 
 
-#endif /* DRIVER_24F76255_C2F6_4840_9A2D_5EDEC9D147D3 */
+#endif /* DRIVER_B0500BD4_003A_4E4C_AAC4_8F82A827CECA */

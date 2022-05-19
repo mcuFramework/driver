@@ -441,6 +441,26 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>main\driver\microchip</GroupName>
+          <Files>
+            <File>
+              <FileName>MCP3421.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main\driver\microchip\MCP3421.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>MCP3421.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\microchip\MCP3421.h</FilePath>
+            </File>
+            <File>
+              <FileName>package-info.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\main\driver\microchip\package-info.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>main\driver\wirelesstag</GroupName>
           <Files>
             <File>
