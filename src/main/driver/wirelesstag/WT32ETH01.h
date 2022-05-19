@@ -202,6 +202,15 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     /**
      * @brief 
      * 
+     * @param byteBuffer 
+     * @param length
+     * @return int 
+     */
+    virtual int get(mcuf::io::InputBuffer& inputBuffer, int length) override;
+
+    /**
+     * @brief 
+     * 
      * @param buffer 
      * @param bufferSize 
      * @return int 

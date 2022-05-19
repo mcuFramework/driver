@@ -180,6 +180,17 @@ int WT32ETH01::get(mcuf::io::InputBuffer& byteBuffer){
 /**
  * @brief 
  * 
+ * @param byteBuffer 
+ * @param length
+ * @return int 
+ */
+int WT32ETH01::get(mcuf::io::InputBuffer& inputBuffer, int length){
+  return this->mReceiver.get(inputBuffer, length);
+}
+
+/**
+ * @brief 
+ * 
  * @param buffer 
  * @param bufferSize 
  * @return int 
