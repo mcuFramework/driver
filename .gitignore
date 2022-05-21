@@ -1,0 +1,11 @@
+# Keil project
+/.keil
+/.vscode
+*.uvoptx
+*.uvguix.*
+*.uvmpw.*
+*.uvmpw.*.*
+*.exe
+/src/main/**/*.c
+/src/main/**/*.cpp
+EventRecorderStub.scvd
