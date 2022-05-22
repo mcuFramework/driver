@@ -282,7 +282,7 @@ bool MCP3421::update(void){
   this->mBusy = 2;
   this->mByteBuffer.flush();
   
-  bool result = this->mSerialBus.write(this->mAddress, this->mByteBuffer, this, this);
+  bool result = this->mSerialBus.read(this->mAddress, this->mByteBuffer, this, this);
   if(result == false)
     this->mBusy = false;
   
