@@ -13,8 +13,4 @@
     <NodeIsExpanded>1</NodeIsExpanded>
   </project>
 
-  <project>
-    <PathAndName>.\ref\mcuf\mcuf.uvprojx</PathAndName>
-  </project>
-
 </ProjectWorkspace>
