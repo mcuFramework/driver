@@ -388,6 +388,7 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
   
   switch(t){
     case WT32ETH01Receiver::Event::MODULE_OK:
+      this->executeHandle(false);
       //System::out().println("r_event:MODULE_OK\n");
       this->mStatus = Status::WAIT_INIT;
       this->mTransfer.setNonAck();
