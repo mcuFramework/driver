@@ -248,6 +248,7 @@ void WT32ETH01Receiver::eventWaitHead(void){
     
     default:
       this->beginReadHead();
+      break;
   }
 }
 
@@ -259,6 +260,7 @@ void WT32ETH01Receiver::eventWaitChar(void){
   char ch;
   while(true){
     ch = this->mByteBuffer[this->mByteBuffer.position()-1];
+    
     if(ch != this->mWaitChar){
       if(this->mInputStreamBuffer.avariable() <= 0){
         this->beginReadNext();
@@ -266,7 +268,8 @@ void WT32ETH01Receiver::eventWaitChar(void){
         
       }else{
         this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-        this->mInputStreamBuffer.get(this->mByteBuffer);
+        if(this->mInputStreamBuffer.get(this->mByteBuffer) == false)
+          this->beginReadNext();
       }
 
     }else{
@@ -412,15 +415,18 @@ void WT32ETH01Receiver::eventConvertReturn(void){
  * 
  */
 void WT32ETH01Receiver::eventStreamLength(void){
+  
   this->mByteBuffer.limit(this->mByteBuffer.limit() + 1);
   this->mByteBuffer.putByte(0x00);
   const char* src = static_cast<const char*>(this->mByteBuffer.pointer());
-  uint16_t len = 0;
+  
+  int len = 0;
   int result = String::scanFormat(src, WT32ETH01Receiver::TEXT_IPD_FORMAT, &len);
   
   if(result == 1){
     this->mByteBuffer.flush();
-    this->beginReadAtLength(len);
+    this->beginReadAtLength(static_cast<uint16_t>(len));
+
     return;
   }
   
