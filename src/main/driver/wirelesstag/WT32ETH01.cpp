@@ -18,7 +18,7 @@
 /* ****************************************************************************************
  * Macro
  */
-
+#define WT32ETH01_DEBUG
 /* ****************************************************************************************
  * Using
  */
@@ -56,7 +56,7 @@ using mcuf::net::InternetProtocolAddress;
 WT32ETH01::WT32ETH01(SerialPort& serialPort, GeneralPin& enablePin) : 
 mSerialPort(serialPort),
 mEnablePin(enablePin),
-mReceiver(serialPort, *this),
+mReceiver(*this),
 mTransfer(serialPort, *this),
 mRemoteAddress(){
   
@@ -389,34 +389,46 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
   switch(t){
     case WT32ETH01Receiver::Event::MODULE_OK:
       this->executeHandle(false);
-      //System::out().print("r_event:MODULE_OK\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:MODULE_OK\n");
+      #endif
       this->mStatus = Status::WAIT_INIT;
       this->mTransfer.setNonAck();
       break;
     
     case WT32ETH01Receiver::Event::OK:
-      //System::out().print("r_event:OK\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:OK\n");
+      #endif
       this->eventOk();
       break;
     
     case WT32ETH01Receiver::Event::ERROR:
-      //System::out().print("r_event:ERROR\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:ERROR\n");
+      #endif
       this->reset();
       break;
     
     case WT32ETH01Receiver::Event::NO_IP:
-      //System::out().print("r_event:NO_IP\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:NO_IP\n");
+      #endif
       this->mStatus = Status::INITD;
       this->executeHandle(false);
       break;
     
     case WT32ETH01Receiver::Event::ON_SEND:
-      //System::out().print("r_event:ON_SEND\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:ON_SEND\n");
+      #endif
       this->mTransfer.setOnSendFlag();
       break;
     
     case WT32ETH01Receiver::Event::SEND_OK:
-      //System::out().print("r_event:SEND_OK\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("r_event:SEND_OK\n");
+      #endif
       this->mTransfer.setSendOkFlag();
       break;
   }
@@ -435,10 +447,14 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
 void WT32ETH01::accept(WT32ETH01Transfer::Event t){
   switch(t){
     case WT32ETH01Transfer::Event::WRITE_SUCCESSFUL:
-      //System::out().print("t_event:WRITE_SUCCESSFUL\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("t_event:WRITE_SUCCESSFUL\n");
+      #endif
       break;
     case WT32ETH01Transfer::Event::WRITE_FAIL:
-      //System::out().print("t_event:WRITE_FAIL\n");
+      #ifdef WT32ETH01_DEBUG
+      System::out().print("t_event:WRITE_FAIL\n");
+      #endif
       this->reset();
       break;
   }
@@ -447,6 +463,14 @@ void WT32ETH01::accept(WT32ETH01Transfer::Event t){
 /* ****************************************************************************************
  * Public Method
  */
+
+/**
+ * @brief
+ *
+ */
+void WT32ETH01::execute(void){
+  this->mReceiver.execute(this->mSerialPort);
+}
 
 /**
  * @brief 
@@ -518,7 +542,7 @@ bool WT32ETH01::reset(void){
   this->mStatus = Status::WAIT_INIT;
   this->mEnablePin.setLow();
   this->mSerialPort.skip(this->mSerialPort.avariable());
-  this->mReceiver.start();
+  this->mReceiver.reset();
   this->mTransfer.start();
   this->delay(1);
   this->mEnablePin.setHigh();

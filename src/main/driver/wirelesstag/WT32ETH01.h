@@ -408,6 +408,12 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
      * @return mcuf::net::MediaAccessControlAddress 
      */
     mcuf::net::MediaAccessControlAddress getMacAddress(void);
+    
+    /**
+     * @brief
+     *
+     */
+    void execute(void);
 
     /**
      * @brief 

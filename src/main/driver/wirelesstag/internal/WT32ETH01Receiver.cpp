@@ -10,6 +10,7 @@
  */
 
 //-----------------------------------------------------------------------------------------
+#include <string.h>
 
 //-----------------------------------------------------------------------------------------
 #include "driver/wirelesstag/internal/WT32ETH01Receiver.h"
@@ -57,11 +58,10 @@ const char* const WT32ETH01Receiver::TEXT_IPD_FORMAT = "+IPD,%d:\0";
  * @brief Construct a new WT32ETH01Receiver object
  * 
  */
-WT32ETH01Receiver::WT32ETH01Receiver(InputStreamBuffer& inputStreamBuffer, Consumer<Event>& event) :
+WT32ETH01Receiver::WT32ETH01Receiver(Consumer<Event>& event) :
 RingBufferInputStream(Memory(this->mRingBufferMemory, sizeof(this->mRingBufferMemory))),
 mInternetProtocolAddress(),
 mMediaAccessControlAddress(),
-mInputStreamBuffer(inputStreamBuffer),
 mByteBuffer(Memory(this->mByteBufferMemory, sizeof(this->mByteBufferMemory))),
 mEvent(event){
   
@@ -85,63 +85,45 @@ WT32ETH01Receiver::~WT32ETH01Receiver(void){
  */
 
 /* ****************************************************************************************
- * Public Method <Override> - mcuf::io::CompletionHandler<int ,void*>
- */
-
-/**
- * @brief 
- * 
- * @param result 
- * @param attachment 
- */
-void WT32ETH01Receiver::completed(int result, void* attachment){
-  switch(this->mStatus){
-    case Status::WAIT_CHAR:
-      this->eventWaitChar();
-      break;
-    
-    case Status::WAIT_HEAD:
-      this->eventWaitHead();
-      break;
-    
-    case Status::WAIT_READ_LEN:
-      this->eventWaitLen();
-      break;
-  }
-  return;
-}
-
-/**
- * @brief 
- * 
- * @param exc 
- * @param attachment 
- */
-void WT32ETH01Receiver::failed(void* exc, void* attachment){
-  this->mEvent.accept(Event::ERROR);
-  return;
-}
-
-/* ****************************************************************************************
  * Public Method
  */
-
 /**
  * @brief 
  * 
  */
-void WT32ETH01Receiver::start(void){
-  this->stop();
-  this->beginReadHead();
+void WT32ETH01Receiver::reset(void){
+  this->mWaitLength = 0;
+  this->mState = State::WAIT_HEAD;
+  this->mByteBuffer.flush();
+  this->flush();
+  return;
 }
 
 /**
  * @brief 
  * 
+ * @param outputBuffer 
  */
-void WT32ETH01Receiver::stop(void){
-  this->abortRead();
-  this->flush();
+void WT32ETH01Receiver::execute(mcuf::io::OutputBuffer& outputBuffer){
+  while(true){
+    if(outputBuffer.isEmpty())
+      break;
+
+    switch(this->mState){
+      case State::WAIT_HEAD:
+        this->executeWaitHead(outputBuffer);
+        break;
+      
+      case State::WAIT_CAHR:
+        this->executeWaitChar(outputBuffer);
+        break;
+      
+      case State::WAIT_RECEIVER_DATA:
+        this->executeWaitReceiverData(outputBuffer);
+        break;
+    }
+
+  }
 }
 
 /* ****************************************************************************************
@@ -163,161 +145,43 @@ void WT32ETH01Receiver::stop(void){
 /**
  * @brief 
  * 
- * @return true 
- * @return false 
+ * @param outputBuffer 
  */
-void WT32ETH01Receiver::beginReadHead(void){ 
-  this->mStatus = Status::WAIT_HEAD;
-  this->mByteBuffer.flush();
-  this->mByteBuffer.limit(1);
-  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
-  return;
-}
-
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
-void WT32ETH01Receiver::beginReadNext(void){
-  this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
-  return;
-}
-
-/**
- * @brief 
- * 
- * @param ch 
- * @return true 
- * @return false 
- */
-void WT32ETH01Receiver::beginReadAtChar(char ch){
-  this->mWaitChar = ch;
-  this->mStatus = Status::WAIT_CHAR;
-  this->beginReadNext();
-  return;
-}
-
-/**
- * @brief 
- * 
- * @param len 
- * @return true 
- * @return false 
- */
-void WT32ETH01Receiver::beginReadAtLength(uint16_t len){
-  this->mStatus = Status::WAIT_READ_LEN;
-  uint16_t max = static_cast<uint16_t>(this->mByteBuffer.capacity() - this->mByteBuffer.position());
-  
-  if(len > max){
-    this->mWaitLength = len - max;
-    len = max;
-  }else{
-    this->mWaitLength = 0;
-  }
-  
-  this->mByteBuffer.limit(this->mByteBuffer.position() + len);
-  this->mInputStreamBuffer.read(this->mByteBuffer, this, this);
-}
-
-/**
- * @brief 
- * 
- */
-void WT32ETH01Receiver::eventWaitHead(void){
-  char ch = this->mByteBuffer[0];
-  switch(ch){
-    case '+':
-      this->beginReadAtChar(',');
-      break;
-    
-    case 'O':
-    case 'E':
-    case 'S':
-    case 'm':
-    case 'n':
-    case 'R':
-      this->beginReadAtChar('\n');
-      break;
-    
-    case '>':
-      this->beginReadAtChar(' ');
-      break;
-    
-    default:
-      this->beginReadHead();
-      break;
-  }
-}
-
-/**
- * @brief 
- * 
- */
-void WT32ETH01Receiver::eventWaitChar(void){
+void WT32ETH01Receiver::executeWaitHead(mcuf::io::OutputBuffer& outputBuffer){
   char ch;
+  
   while(true){
-    ch = this->mByteBuffer[this->mByteBuffer.position()-1];
-    
-    if(ch != this->mWaitChar){
-      if(this->mInputStreamBuffer.avariable() <= 0){
-        this->beginReadNext();
-        return;
-        
-      }else{
-        this->mByteBuffer.limit(this->mByteBuffer.position()+1);
-        if(this->mInputStreamBuffer.get(this->mByteBuffer) == false)
-          this->beginReadNext();
-      }
-
-    }else{
+    if(outputBuffer.getByte(ch) == false)
       break;
+    
+    switch(ch){
+      case '+':
+        this->mByteBuffer.flush();
+        this->mByteBuffer.putByte(ch);
+        this->setWaitChar(',');
+        return;
+      
+      case 'O':
+      case 'E':
+      case 'S':
+      case 'm':
+      case 'n':
+      case 'R':
+        this->mByteBuffer.flush();
+        this->mByteBuffer.putByte(ch);
+        this->setWaitChar('\n');
+        return;
+      
+      case '>':
+        this->mByteBuffer.flush();
+        this->mByteBuffer.putByte(ch);
+        this->setWaitChar(' ');
+        return;
+      
+      default:
+        break;
     }
   }
-
-  
-  switch(ch){
-    case ':':
-      this->eventStreamLength();
-      break;    
-
-    case ',':
-      this->eventCommand();
-      break;
-    
-    case '\n':
-      this->eventResult();
-      this->beginReadHead();
-      break;
-    
-    case ' ':
-      this->mEvent.accept(Event::ON_SEND);
-      this->beginReadHead();
-      break;
-    
-    default:
-      this->beginReadHead();
-      break;
-  }
-  return;
-}
-
-/**
- * @brief 
- * 
- */
-void WT32ETH01Receiver::eventWaitLen(void){
-  this->mByteBuffer.flip();
-  this->put(this->mByteBuffer);
-  
-  if(this->mWaitLength == 0){
-    this->beginReadHead();
-  }else{
-    this->mByteBuffer.flush();
-    this->beginReadAtLength(this->mWaitLength);
-  }
   
   return;
 }
@@ -325,8 +189,96 @@ void WT32ETH01Receiver::eventWaitLen(void){
 /**
  * @brief 
  * 
+ * @param outputBuffer 
  */
-void  WT32ETH01Receiver::eventResult(void){
+void WT32ETH01Receiver::executeWaitChar(mcuf::io::OutputBuffer& outputBuffer){
+  while(true){
+    char ch;
+    if(outputBuffer.getByte(ch) == false)
+      break;
+    
+    this->mByteBuffer.putByte(ch);
+    if(ch != this->mWaitChar)
+      continue;
+    
+    switch(ch){
+      case ':':
+        this->setWaitReceiverData();
+        return;    
+
+      case ',':
+        if(this->mByteBuffer.indexOfString(WT32ETH01Receiver::TEXT_IPD) != -1)
+          this->setWaitChar(':');
+        
+        else
+          this->setWaitChar('\n');
+        break;
+      
+      case '\n':
+        this->commandParse();
+        this->setWaitHead();
+        return;
+      
+      case ' ':
+        this->mEvent.accept(Event::ON_SEND);
+        this->setWaitHead();
+        return;
+      
+      default:
+        this->setWaitHead();
+        return;
+    }
+  }
+}
+
+/**
+ * @brief 
+ * 
+ * @param outputBuffer 
+ */
+void WT32ETH01Receiver::executeWaitReceiverData(mcuf::io::OutputBuffer& outputBuffer){
+  char ch;
+  while(true){
+    if(this->mWaitLength <= 0){
+      this->mWaitLength = 0;
+      this->setWaitHead();
+      break;
+    }
+    
+    if(outputBuffer.getByte(ch) == false)
+      break;
+    
+    this->putByte(ch);
+  }
+}
+
+/**
+ * @brief Set the Wait Char object
+ * 
+ * @param ch 
+ */
+void WT32ETH01Receiver::setWaitChar(char ch){
+  this->mState = State::WAIT_CAHR;
+  this->mWaitChar = ch;
+  return;
+}
+
+/**
+ * @brief 
+ * 
+ */
+void WT32ETH01Receiver::setWaitHead(void){
+  this->mState = State::WAIT_HEAD;
+  this->mWaitChar = 0x00;
+  this->mByteBuffer.flush();
+  return;
+}
+
+/**
+ * @brief
+ *
+ */
+void WT32ETH01Receiver::commandParse(void){
   char ch = this->mByteBuffer[0];
   switch(ch){
     
@@ -374,49 +326,36 @@ void  WT32ETH01Receiver::eventResult(void){
 /**
  * @brief 
  * 
- */ 
-void WT32ETH01Receiver::eventCommand(void){
-  if(this->mByteBuffer.indexOfString(WT32ETH01Receiver::TEXT_IPD) != -1){
-    this->beginReadAtChar(':');
-  }
-  else
-    this->beginReadAtChar('\n');
-  
-  return;
-}
-
-/**
- * @brief 
- * 
  */
 void WT32ETH01Receiver::eventConvertReturn(void){
   char cache[20];
   int result = 0;
-  this->mByteBuffer.limit(this->mByteBuffer.limit() + 1);
   this->mByteBuffer.putByte(0x00);
   const char* src = static_cast<const char*>(this->mByteBuffer.pointer());
   
-  result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHIP_FORMAT, &cache);
-  if(result == 1){
-    this->mInternetProtocolAddress.setAddress(cache);
-    return;
+  if(strcmp(src, "+CIFSR:ETHIP,\"0.0.0.0\"\r\n") == 0){
+    this->mInternetProtocolAddress.setAddress("0.0.0.0\0");
+    
+  }else{
+    result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHIP_FORMAT, &cache);
+    if(result == 1){
+      this->mInternetProtocolAddress.setAddress(cache);
+      return;
+    }
+    
+    result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHMAC_FORMAT, &cache);
+    if(result == 1){
+      this->mMediaAccessControlAddress.setMediaAccessControlAddress(cache);
+      return;
+    }
   }
-  
-  result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHMAC_FORMAT, &cache);
-  if(result == 1){
-    this->mMediaAccessControlAddress.setMediaAccessControlAddress(cache);
-    return;
-  }
- 
 }
 
 /**
  * @brief 
  * 
  */
-void WT32ETH01Receiver::eventStreamLength(void){
-  
-  this->mByteBuffer.limit(this->mByteBuffer.limit() + 1);
+void WT32ETH01Receiver::setWaitReceiverData(void){
   this->mByteBuffer.putByte(0x00);
   const char* src = static_cast<const char*>(this->mByteBuffer.pointer());
   
@@ -424,13 +363,12 @@ void WT32ETH01Receiver::eventStreamLength(void){
   int result = String::scanFormat(src, WT32ETH01Receiver::TEXT_IPD_FORMAT, &len);
   
   if(result == 1){
-    this->mByteBuffer.flush();
-    this->beginReadAtLength(static_cast<uint16_t>(len));
-
+    this->mWaitLength = len;
+    this->mState = State::WAIT_RECEIVER_DATA;
     return;
   }
   
-  this->beginReadHead();
+  this->setWaitHead();
   return;
 }
 

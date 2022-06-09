@@ -31,9 +31,18 @@ namespace driver{
 /* ****************************************************************************************
  * Class/Interface/Struct/Enum
  */  
-class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBufferInputStream implements
-  public mcuf::io::CompletionHandler<int, void*>{
-    
+class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBufferInputStream{
+  
+  /* **************************************************************************************
+   * Enum State
+   */
+  private:
+    enum struct State : int{
+      WAIT_HEAD,
+      WAIT_CAHR,
+      WAIT_RECEIVER_DATA
+    };
+  
     
   /* **************************************************************************************
    * Enum Event
@@ -48,16 +57,6 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
       SEND_OK
     };
     
-  /* **************************************************************************************
-   * Enum Status
-   */    
-  private:
-    enum struct Status{
-      WAIT_HEAD,
-      WAIT_CHAR,
-      WAIT_READ_LEN
-    };
-
   /* **************************************************************************************
    * Variable <Public>
    */
@@ -86,16 +85,14 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
    * Variable <Private>
    */
   private:
-    mcuf::io::InputStreamBuffer& mInputStreamBuffer;
     mcuf::io::ByteBuffer mByteBuffer;
     mcuf::function::Consumer<Event>& mEvent;
-    
-  
     uint8_t mRingBufferMemory[256];
     uint8_t mByteBufferMemory[64];
-    uint16_t mWaitLength;
+    int mWaitLength;
+    State mState;
     char mWaitChar;
-    Status mStatus;
+    
   
   /* **************************************************************************************
    * Abstract method <Public>
@@ -113,7 +110,7 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
      * @brief Construct a new WT32ETH01Receiver object
      * 
      */
-    WT32ETH01Receiver(mcuf::io::InputStreamBuffer& inputStreamBuffer, mcuf::function::Consumer<Event>& event);
+    WT32ETH01Receiver(mcuf::function::Consumer<Event>& event);
 
     /**
      * @brief Destroy the WT32ETH01Receiver object
@@ -130,27 +127,6 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
    */
 
   /* **************************************************************************************
-   * Public Method <Override> - mcuf::io::CompletionHandler<int ,void*>
-   */
-  public:
-  
-    /**
-     * @brief 
-     * 
-     * @param result 
-     * @param attachment 
-     */
-    virtual void completed(int result, void* attachment) override;
-    
-    /**
-     * @brief 
-     * 
-     * @param exc 
-     * @param attachment 
-     */
-    virtual void failed(void* exc, void* attachment) override;
-
-  /* **************************************************************************************
    * Public Method
    */
   public:
@@ -158,13 +134,14 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
      * @brief 
      * 
      */
-    void start(void);
+    void reset(void);
 
     /**
      * @brief 
      * 
+     * @param outputBuffer 
      */
-    void stop(void);
+    void execute(mcuf::io::OutputBuffer& outputBuffer);
 
   /* **************************************************************************************
    * Protected Method <Static>
@@ -190,70 +167,33 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
    * Private Method
    */
   private:
-    
     /**
      * @brief 
      * 
-     * @return true 
-     * @return false 
+     * @param outputBuffer 
      */
-    void beginReadHead(void);
+    void executeWaitHead(mcuf::io::OutputBuffer& outputBuffer);
+
+    /**
+     * @brief 
+     * 
+     * @param outputBuffer 
+     */
+    void executeWaitChar(mcuf::io::OutputBuffer& outputBuffer);
+
+    /**
+     * @brief 
+     * 
+     * @param outputBuffer 
+     */
+    void executeWaitReadLen(mcuf::io::OutputBuffer& outputBuffer);
   
     /**
      * @brief 
      * 
-     * @return true 
-     * @return false 
+     * @param outputBuffer 
      */
-    void beginReadNext(void);
-
-    /**
-     * @brief 
-     * 
-     * @param ch 
-     * @return true 
-     * @return false 
-     */
-    void beginReadAtChar(char ch);
-
-    /**
-     * @brief 
-     * 
-     * @param len 
-     * @return true 
-     * @return false 
-     */
-    void beginReadAtLength(uint16_t len);
-
-    /**
-     * @brief 
-     * 
-     */
-    void eventWaitHead(void);
-  
-    /**
-     * @brief 
-     * 
-     */
-    void eventWaitChar(void);
-  
-    /**
-     * @brief 
-     * 
-     */
-    void eventWaitLen(void);
-
-    /**
-     * @brief 
-     * 
-     */
-    void eventResult(void);
-
-    /**
-     * @brief 
-     * 
-     */
-    void eventCommand(void);
+    void executeWaitReceiverData(mcuf::io::OutputBuffer& outputBuffer);
 
     /**
      * @brief 
@@ -265,7 +205,26 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
      * @brief 
      * 
      */
-    void eventStreamLength(void);
+    void setWaitReceiverData(void);
+    
+    /**
+     * @brief Set the Wait Char object
+     * 
+     * @param ch 
+     */
+    void setWaitChar(char ch);
+    
+    /**
+     * @brief 
+     * 
+     */
+    void setWaitHead(void);
+    
+    /**
+     * @brief
+     *
+     */
+    void commandParse(void);
 };
 
 /* ****************************************************************************************
