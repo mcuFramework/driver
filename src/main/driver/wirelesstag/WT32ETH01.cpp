@@ -18,7 +18,7 @@
 /* ****************************************************************************************
  * Macro
  */
-#define WT32ETH01_DEBUG
+//#define WT32ETH01_DEBUG
 /* ****************************************************************************************
  * Using
  */
@@ -544,7 +544,7 @@ bool WT32ETH01::reset(void){
   this->mSerialPort.skip(this->mSerialPort.avariable());
   this->mReceiver.reset();
   this->mTransfer.start();
-  this->delay(1);
+  this->delay(10);
   this->mEnablePin.setHigh();
   return true;
 }

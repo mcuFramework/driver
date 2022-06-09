@@ -93,6 +93,11 @@ WT32ETH01Receiver::~WT32ETH01Receiver(void){
  */
 void WT32ETH01Receiver::reset(void){
   this->mWaitLength = 0;
+  this->mInternetProtocolAddress.setAddress(0, 0, 0, 0);
+  
+  const uint8_t empty[6] = {0,0,0,0,0,0};
+  this->mMediaAccessControlAddress.setMediaAccessControlAddress(empty);
+  
   this->mState = State::WAIT_HEAD;
   this->mByteBuffer.flush();
   this->flush();
@@ -249,6 +254,7 @@ void WT32ETH01Receiver::executeWaitReceiverData(mcuf::io::OutputBuffer& outputBu
       break;
     
     this->putByte(ch);
+    --this->mWaitLength;
   }
 }
 
