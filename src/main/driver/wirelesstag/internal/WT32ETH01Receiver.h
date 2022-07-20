@@ -225,6 +225,33 @@ class driver::wirelesstag::internal::WT32ETH01Receiver extends mcuf::io::RingBuf
      *
      */
     void commandParse(void);
+
+    /**
+     * @brief 
+     * 
+     * @param str 
+     * @param dst 
+     * @return int 
+     */
+    int convertEthip(const char* str, char* dst);
+
+    /**
+     * @brief 
+     * 
+     * @param str 
+     * @param dst 
+     * @return int 
+     */
+    int convertEthmac(const char* str, char* dst);
+
+    /**
+     * @brief 
+     * 
+     * @param str 
+     * @param dst 
+     * @return int 
+     */
+    int convertIpt(const char* str, int& result);
 };
 
 /* ****************************************************************************************

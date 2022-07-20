@@ -343,7 +343,9 @@ void WT32ETH01Receiver::eventConvertReturn(void){
     this->mInternetProtocolAddress.setAddress("0.0.0.0\0");
     
   }else{
-    result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHIP_FORMAT, &cache);
+
+
+    result = this->convertEthip(src, cache);
     if(result == 1){
       this->mInternetProtocolAddress.setAddress(cache);
       return;
@@ -366,7 +368,7 @@ void WT32ETH01Receiver::setWaitReceiverData(void){
   const char* src = static_cast<const char*>(this->mByteBuffer.pointer());
   
   int len = 0;
-  int result = String::scanFormat(src, WT32ETH01Receiver::TEXT_IPD_FORMAT, &len);
+  int result = this->convertIpt(src, len);
   
   if(result == 1){
     this->mWaitLength = len;
@@ -376,6 +378,67 @@ void WT32ETH01Receiver::setWaitReceiverData(void){
   
   this->setWaitHead();
   return;
+}
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @param dst 
+ * @return int 
+ */
+int WT32ETH01Receiver::convertEthip(const char* str, char* dst){
+  mcuf::lang::String s = mcuf::lang::String(str);
+  int index = s.indexOfString("+CIFSR:ETHIP,\"");
+  if(index == -1)
+    return 0;
+  
+  index += 14;
+  int indexEnd = s.indexOf('"', index);
+  s.copyTo(dst, index, (indexEnd - index));
+  return 1;
+}
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @param dst 
+ * @return int 
+ */
+int WT32ETH01Receiver::convertEthmac(const char* str, char* dst){
+  mcuf::lang::String s = mcuf::lang::String(str);
+  int index = s.indexOfString("+CIFSR:ETHMAC,\"");
+  if(index == -1)
+    return 0;
+  
+  index += 15;
+  
+  int indexEnd = s.indexOf('"', index);
+  s.copyTo(dst, index, (indexEnd - index));
+  return 1;
+}
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @param dst 
+ * @return int 
+ */
+int WT32ETH01Receiver::convertIpt(const char* str, int& result){
+  mcuf::lang::String s = mcuf::lang::String(str);
+  char cache[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int index = s.indexOfString("+IPD,");
+  if(index == -1)
+    return 0;
+  
+  index += 5;
+  
+  int indexEnd = s.indexOf(':', index);
+  s.copyTo(cache, index, (indexEnd - index));
+  result = mcuf::lang::Integer::valueOf(cache);
+  return 1;
 }
 
 /* ****************************************************************************************

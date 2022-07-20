@@ -30,11 +30,12 @@ namespace driver::wirelesstag{
  * Class/Interface/Struct/Enum
  */  
 class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
-  public mcuf::io::InputStreamBuffer,
-  public mcuf::io::OutputStream,
-  public hal::Base,
-  private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>,
-  private mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>{
+public mcuf::util::NioExecuteMethod,
+public mcuf::io::InputStreamBuffer,
+public mcuf::io::OutputStream,
+public hal::Base,
+private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>,
+private mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>{
 
   /* **************************************************************************************
    * Enum ConnectType
@@ -135,6 +136,15 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
    * Public Method <Static>
    */
 
+  /* **************************************************************************************
+   * Public Method <Override> - mcuf::util::NioExecuteMethod
+   */
+  public:
+    /**
+     * @brief NIO套件處理的進入方法
+     *
+     */
+    virtual void execute(void) override;
   /* **************************************************************************************
    * Public Method <Override> - hal::Base
    */
@@ -410,16 +420,10 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     mcuf::net::MediaAccessControlAddress getMacAddress(void);
     
     /**
-     * @brief
-     *
-     */
-    void execute(void);
-
-    /**
-     * @brief 
+     * @brief 判斷是否有網路連線
      * 
-     * @return true 
-     * @return false 
+     * @return true 已經建立連線
+     * @return false 尚未建立連線
      */
     bool isConnect(void);
 
@@ -432,10 +436,10 @@ class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
     bool disconnect(void);
 
     /**
-     * @brief 
+     * @brief 重新設定模組
      * 
-     * @return true 
-     * @return false 
+     * @return true 重新設定成功
+     * @return false 重新設定失敗
      */
     bool reset(void);
 
