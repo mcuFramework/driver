@@ -28,7 +28,8 @@ namespace driver::ams{
  * Class/Interface/Struct/Enum
  */  
 class driver::ams::TCS3472 extends mcuf::lang::Object implements
-public hal::serial::SerialBusEvent{
+public hal::serial::SerialBusEvent,
+public mcuf::util::Updater{
 
   /* **************************************************************************************
    * Enum Type
@@ -159,23 +160,43 @@ public hal::serial::SerialBusEvent{
                                   void* attachment) override;
 
   /* **************************************************************************************
+   * Public Method <Override> - mcuf::util::Updater
+   */
+  public:
+    /**
+     * @brief 更新資源
+     * 
+     * @return true 開始嘗試更新成功
+     * @return false 開始嘗試更新失敗
+     */
+    virtual bool update(void) override;
+
+    /**
+     * @brief 是否正在更新
+     * 
+     * @return true 正在更新中
+     * @return false 等待更新
+     */
+    virtual bool isUpdating(void) override;
+
+  /* **************************************************************************************
    * Public Method
    */
   public:
   
     /**
-     * @brief 
+     * @brief TCS3472啟用
      * 
-     * @return true 
-     * @return false 
+     * @return true 啟用成功
+     * @return false 啟用失敗
      */
     bool enable(void);
 
     /**
-     * @brief 
+     * @brief TCS3472停用
      * 
-     * @return true 
-     * @return false 
+     * @return true 停用成功
+     * @return false 停用失敗
      */
     bool disable(void);
   
@@ -189,20 +210,12 @@ public hal::serial::SerialBusEvent{
     bool setIntegrationCycle(uint8_t cycle);
   
     /**
-     * @brief 
+     * @brief 設定TCS3472暫存器
      * 
-     * @return true 
-     * @return false 
-     */
-    bool read(void);
-  
-    /**
-     * @brief 
-     * 
-     * @param addr 
-     * @param data 
-     * @return true 
-     * @return false 
+     * @param addr 地址位置
+     * @param data 資料
+     * @return true 寫入成功
+     * @return false 寫入失敗
      */
     bool writeRegister(Address addr, uint8_t data);
 
