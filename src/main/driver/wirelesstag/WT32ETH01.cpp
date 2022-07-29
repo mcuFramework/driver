@@ -96,6 +96,7 @@ bool WT32ETH01::deinit(void){
   if(!this->isInit())
     return false;
   
+  this->mTimerTick.cancel();
   this->mSerialPort.deinit();
   this->mStatus = Status::NOT_INIT;
   
@@ -112,6 +113,8 @@ bool WT32ETH01::init(void){
   if(this->isInit())
     return false;
   
+  this->mTimerTick.clear();
+  mcuf::util::Timer::scheduleAtFixedRate(this->mTimerTick, 1000);
   this->mEnablePin.setOutput();
   this->mSerialPort.init();
   this->mSerialPort.baudrate(115200);  
@@ -385,7 +388,7 @@ bool WT32ETH01::write(mcuf::io::OutputBuffer& outputBuffer, Future& future){
  * @param t 
  */
 void WT32ETH01::accept(WT32ETH01Receiver::Event t){
-  
+  this->mTimerTick.clear();
   switch(t){
     case WT32ETH01Receiver::Event::MODULE_OK:
       this->executeHandle(false);
@@ -445,6 +448,7 @@ void WT32ETH01::accept(WT32ETH01Receiver::Event t){
  * @param t 
  */
 void WT32ETH01::accept(WT32ETH01Transfer::Event t){
+  this->mTimerTick.clear();
   switch(t){
     case WT32ETH01Transfer::Event::WRITE_SUCCESSFUL:
       #ifdef WT32ETH01_DEBUG
@@ -469,6 +473,13 @@ void WT32ETH01::accept(WT32ETH01Transfer::Event t){
  *
  */
 void WT32ETH01::execute(void){
+  if(this->mTimerTick.isDone() >= 30){
+    this->mTimerTick.clear();
+    
+    this->reset();
+    return;
+  }
+  
   this->mReceiver.execute(this->mSerialPort);
 }
 
@@ -546,6 +557,7 @@ bool WT32ETH01::reset(void){
   this->mTransfer.start();
   this->delay(10);
   this->mEnablePin.setHigh();
+  this->mTimerTick.clear();
   return true;
 }
 

@@ -101,6 +101,7 @@ void WT32ETH01Receiver::reset(void){
   this->mState = State::WAIT_HEAD;
   this->mByteBuffer.flush();
   this->flush();
+  this->putByte(0x00);
   return;
 }
 
@@ -351,7 +352,7 @@ void WT32ETH01Receiver::eventConvertReturn(void){
       return;
     }
     
-    result = String::scanFormat(src, WT32ETH01Receiver::TEXT_CIFSR_ETHMAC_FORMAT, &cache);
+    result = this->convertEthmac(src, cache);
     if(result == 1){
       this->mMediaAccessControlAddress.setMediaAccessControlAddress(cache);
       return;
