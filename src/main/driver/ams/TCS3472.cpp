@@ -75,25 +75,62 @@ void TCS3472::onSerialBusEvent(SerialBusStatus status, int result, void* attachm
   this->mBusy = false;
 }
 
+/* **************************************************************************************
+ * Public Method <Override> - mcuf::util::Updater
+ */
+/**
+ * @brief 更新資源
+ * 
+ * @return true 開始嘗試更新成功
+ * @return false 開始嘗試更新失敗
+ */
+bool TCS3472::update(void){
+  if(this->mBusy)
+    return false;
+  
+  this->mBusy = true;
+  
+  this->mByteBufferTransfer.flush();
+  this->mByteBufferTransfer.putByte(this->getCommand(Address::ADDR_ENABLE));
+  this->mByteBufferTransfer.flip();
+  this->mByteBufferReceiver.flush();
+  
+  if(this->mSerailBus.transfer(this->mAddress, this->mByteBufferTransfer, this->mByteBufferReceiver, this, this))
+    return true;
+  
+  this->mBusy = false;
+  return false;
+}
+
+/**
+ * @brief 是否正在更新
+ * 
+ * @return true 正在更新中
+ * @return false 等待更新
+ */
+bool TCS3472::isUpdating(void){
+  return this->mBusy;
+}
+
 /* ****************************************************************************************
  * Public Method
  */
 
 /**
- * @brief 
+ * @brief TCS3472啟用
  * 
- * @return true 
- * @return false 
+ * @return true 啟用成功
+ * @return false 啟用失敗
  */
 bool TCS3472::enable(void){
   return this->writeRegister(Address::ADDR_ENABLE, (0x01 | 0x02));
 }
 
 /**
- * @brief 
+ * @brief TCS3472停用
  * 
- * @return true 
- * @return false 
+ * @return true 停用成功
+ * @return false 停用失敗
  */
 bool TCS3472::disable(void){
   return this->writeRegister(Address::ADDR_ENABLE, 0);
@@ -112,30 +149,6 @@ bool TCS3472::setIntegrationCycle(uint8_t cycle){
   
   cycle = 0xFF - cycle;
   return this->writeRegister(Address::ADDR_ENABLE, cycle);
-}
-
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
-bool TCS3472::read(void){
-  if(this->mBusy)
-    return false;
-  
-  this->mBusy = true;
-  
-  this->mByteBufferTransfer.flush();
-  this->mByteBufferTransfer.putByte(this->getCommand(Address::ADDR_ENABLE));
-  this->mByteBufferTransfer.flip();
-  this->mByteBufferReceiver.flush();
-  
-  if(this->mSerailBus.transfer(this->mAddress, this->mByteBufferTransfer, this->mByteBufferReceiver, this, this))
-    return true;
-  
-  this->mBusy = false;
-  return false;
 }
 
 /**
