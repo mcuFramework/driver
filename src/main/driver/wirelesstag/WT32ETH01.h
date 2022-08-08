@@ -32,6 +32,7 @@ namespace driver::wirelesstag{
 class driver::wirelesstag::WT32ETH01 extends mcuf::lang::Object implements
 public mcuf::util::NioExecuteMethod,
 public mcuf::io::InputStreamBuffer,
+public mcuf::io::OutputBuffer,
 public mcuf::io::OutputStream,
 public hal::Base,
 private mcuf::function::Consumer<internal::WT32ETH01Receiver::Event>,
@@ -173,6 +174,17 @@ private mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>{
      * @return false initd
      */
     virtual bool isInit(void) override;
+
+  /* **************************************************************************************
+   * Public Method <Override> - mcuf::io::InputStreamBuffer
+   */
+  public:
+    /**
+     * @brief Get the Output Buffer object
+     * 
+     * @return mcuf::io::OutputBuffer& 
+     */
+    virtual mcuf::io::OutputBuffer& getOutputBuffer(void) override;
 
   /* **************************************************************************************
    * Public Method <Override> - mcuf::io::OutputBuffer

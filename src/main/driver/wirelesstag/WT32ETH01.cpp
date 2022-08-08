@@ -133,6 +133,18 @@ bool WT32ETH01::isInit(void){
   return (this->mStatus != Status::NOT_INIT);
 }
 
+/* **************************************************************************************
+ * Public Method <Override> - mcuf::io::InputStreamBuffer
+ */
+/**
+ * @brief Get the Output Buffer object
+ * 
+ * @return mcuf::io::OutputBuffer& 
+ */
+mcuf::io::OutputBuffer& WT32ETH01::getOutputBuffer(void){
+  return *this;
+}
+
 /* ****************************************************************************************
  * Public Method <Override> - mcuf::io::OutputBuffer
  */
@@ -480,7 +492,7 @@ void WT32ETH01::execute(void){
     return;
   }
   
-  this->mReceiver.execute(this->mSerialPort);
+  this->mReceiver.execute(this->mSerialPort.getOutputBuffer());
 }
 
 /**
@@ -552,7 +564,7 @@ bool WT32ETH01::disconnect(void){
 bool WT32ETH01::reset(void){
   this->mStatus = Status::WAIT_INIT;
   this->mEnablePin.setLow();
-  this->mSerialPort.skip(this->mSerialPort.avariable());
+  this->mSerialPort.getOutputBuffer().skip(this->mSerialPort.getOutputBuffer().avariable());
   this->mReceiver.reset();
   this->mTransfer.start();
   this->delay(10);
