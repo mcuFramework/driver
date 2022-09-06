@@ -94,7 +94,6 @@ private mcuf::function::Consumer<internal::WT32ETH01Transfer::Event>{
     driver::wirelesstag::internal::WT32ETH01Receiver mReceiver;
     driver::wirelesstag::internal::WT32ETH01Transfer mTransfer;
     mcuf::net::SocketAddress mRemoteAddress;
-    mcuf::util::TimerTick mTimerTick;
     mcuf::io::Future* mFuture;
     uint32_t mIp;
     uint32_t mGateway;
